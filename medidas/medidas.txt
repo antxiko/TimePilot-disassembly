@@ -1,0 +1,30 @@
+VENTANA  de 30 a 90 s del replay (60.000 s emulados)
+  demo (0xE014) = 0   fase en marcha (0xE015) = 1
+  epoca (0xE180) = 1
+
+CONTROL
+  interrupciones de la ROM (bp 0x0038)   2980
+  cuadros por segundo                    49.67
+
+LA INTERRUPCION DEL CARTUCHO (0x4037-0x4117)
+  entradas                               2980
+  salidas                                2979
+  pasadas por el mirador de 0x410B       2979
+  reentradas sin salir (0x410B - salidas) 0
+  tiempo dentro                          30.0666 s de 60.000
+  PORCENTAJE DEL CUADRO                  50.11 %
+  por interrupcion                       10.093 ms
+
+EL REPARTO EN SEIS FOTOGRAMAS (0xE01F)
+  fase  cuantas   ms cada una   % del total
+   0       498      10.181        16.9 %
+   1       496      10.137        16.7 %
+   2       496      11.096        18.3 %
+   3       496      10.165        16.8 %
+   4       497       8.810        14.6 %
+   5       496      10.169        16.8 %
+
+EL VDP
+  escrituras al puerto 0x98 (datos)      1074630
+  escrituras al puerto 0x99 (direccion)  317678
+  por fotograma: 0x98 = 360.6   0x99 = 106.6

@@ -26,6 +26,7 @@ CODIGO = 8911
 DATOS = 7473
 EPOCAS = 5                          # los cinco anos de la tabla de 0x4E7C
 DIRECCIONES = 16                    # las dieciseis direcciones de vuelo
+COMPORTAMIENTOS = 8                 # las ocho rutinas de la tabla de 0x605C
 
 
 def mil(n, idioma):
@@ -55,6 +56,7 @@ TXT = {
                 ("EL-CARTUCHO.html", "El cartucho"),
                 ("EL-CODIGO.html", "El código"),
                 ("HALLAZGOS.html", "Hallazgos"),
+                ("EN-EL-EMULADOR.html", "En el emulador"),
                 ("PREGUNTAS-ABIERTAS.html", "Preguntas abiertas")],
         otro=("../", "In English"),
         h_num="El juego en cifras", h_find="Lo que apareció al desmontarlo",
@@ -62,9 +64,11 @@ TXT = {
         cifras=[("100 %", "del binario explicado"),
                 (str(EPOCAS), "épocas, de 1910 a 2001"),
                 (str(DIRECCIONES), "direcciones de vuelo"),
+                (str(COMPORTAMIENTOS), "comportamientos de enemigo"),
                 (mil(CODIGO, "es"), "bytes de código"),
                 (mil(DATOS, "es"), "bytes de datos"),
-                ("0", "bytes sin identificar")],
+                ("0", "bytes sin identificar"),
+                ("50,1 %", "del fotograma se lo come la interrupción, medido")],
         nota_scr="Cada una de estas imágenes es el cartucho repetido fuera "
                  "de él: los caracteres se suben como los sube la ROM, con "
                  "sus colores, y la pantalla se monta con las mismas listas de "
@@ -96,6 +100,7 @@ TXT = {
                 ("THE-CARTRIDGE.html", "The cartridge"),
                 ("THE-CODE.html", "The code"),
                 ("FINDINGS.html", "Findings"),
+                ("IN-THE-EMULATOR.html", "In the emulator"),
                 ("OPEN-QUESTIONS.html", "Open questions")],
         otro=("es/", "En castellano"),
         h_num="The game in numbers",
@@ -104,9 +109,11 @@ TXT = {
         cifras=[("100%", "of the binary explained"),
                 (str(EPOCAS), "eras, from 1910 to 2001"),
                 (str(DIRECCIONES), "directions of flight"),
+                (str(COMPORTAMIENTOS), "enemy behaviours"),
                 (mil(CODIGO, "en"), "bytes of code"),
                 (mil(DATOS, "en"), "bytes of data"),
-                ("0", "bytes unidentified")],
+                ("0", "bytes unidentified"),
+                ("50.1%", "of the frame goes on the interrupt, measured")],
         nota_scr="Each of these pictures is the cartridge replayed outside it: "
                  "the characters go up the way the ROM sends them, with their "
                  "colours, and the screen is built from the same label lists. "
@@ -164,6 +171,25 @@ HALLAZGOS = {
          "<p>Para callar el canal 2 de golpe, 0x5C8F no toca el PSG: le apunta "
          "el puntero al <b>0xFF que cierra</b> el programa de 0x7E40. El canal "
          "lee el final y se calla él solo, por el camino de siempre.</p>"),
+        ("Los helicópteros no giran porque no hay dibujos",
+         "<p>Cada época sube los patrones de sus enemigos, y el biplano, el "
+         "caza y el reactor traen <b>ocho rotaciones</b> cada uno. El "
+         "helicóptero de la época 3 trae 96 bytes: <b>tres dibujos</b> "
+         "(0x75F2).</p>"
+         "<p>Y a esa época le tocan justo los comportamientos 5, 6 y 7, que "
+         "son los tres únicos que no giran. Los comportamientos están "
+         "repartidos según los dibujos que hay.</p>"),
+        ("La interrupción se come la mitad del fotograma",
+         "<p>Medido en openMSX sobre una partida grabada: <b>50,11 %</b> del "
+         "cuadro, 10,09 ms de 20,1, con dos métodos independientes que dan lo "
+         "mismo. Y el reparto en seis fases sale parejo, de 8,81 a 11,10 ms.</p>"
+         "<p>Con la demo en marcha, que dispara sin parar, sube al "
+         "<b>71,32 %</b>.</p>"),
+        ("Este cartucho no lleva la marca oculta de Konami",
+         "<p>Otros cartuchos de la casa esconden al final de la ROM su número "
+         "de catálogo y el título en katakana, un detalle que documentó "
+         "<b>Manuel Pazos</b>. Aquí no hay nada: de 0x7F1E hasta el último "
+         "byte solo hay 226 bytes de relleno, todos 0xFF.</p>"),
     ],
     "en": [
         ("The fourth era is 1984, not 1982",
@@ -212,6 +238,25 @@ HALLAZGOS = {
          "points the channel at the <b>0xFF that closes</b> the program at "
          "0x7E40. The channel reads the end and goes quiet on its own, the "
          "usual way.</p>"),
+        ("The helicopters do not turn because there are no drawings",
+         "<p>Every era uploads its enemies&rsquo; patterns, and the biplane, "
+         "the fighter and the jet each bring <b>eight rotations</b>. The era 3 "
+         "helicopter brings 96 bytes: <b>three drawings</b> (0x75F2).</p>"
+         "<p>And that era gets exactly behaviours 5, 6 and 7, the only three "
+         "that do not turn. The behaviours are handed out according to the "
+         "drawings there are.</p>"),
+        ("The interrupt eats half the frame",
+         "<p>Measured in openMSX over a recorded game: <b>50.11%</b> of the "
+         "frame, 10.09 ms out of 20.1, with two independent methods agreeing. "
+         "And the six-phase split comes out even, from 8.81 to 11.10 ms.</p>"
+         "<p>With the attract mode running, which fires non-stop, it goes up "
+         "to <b>71.32%</b>.</p>"),
+        ("This cartridge does not carry Konami&rsquo;s hidden mark",
+         "<p>Other cartridges from the same house hide their catalogue number "
+         "and their title in katakana at the end of the ROM, a detail "
+         "documented by <b>Manuel Pazos</b>. There is nothing here: from "
+         "0x7F1E to the last byte there are just 226 padding bytes, all "
+         "0xFF.</p>"),
     ],
 }
 
@@ -246,6 +291,30 @@ GALERIA = [
      "todas las épocas",
      "0x712B — some of the common sprite patterns, the ones that work for "
      "every era"),
+    ("partida1.png",
+     "la pantalla de la época 1 montada entera: el cielo y sus colores "
+     "(0x4D39), las nueve nubes por las casillas que dice 0x4CE9, el avión, y "
+     "el marcador con su año, sus vidas y las marcas de los enemigos que "
+     "faltan",
+     "the era 1 screen built in full: the sky and its colours (0x4D39), the "
+     "nine clouds in the cells 0x4CE9 gives, the plane, and the scoreboard "
+     "with its year, its lives and the marks for the enemies still to go"),
+    ("bicho3.png",
+     "0x6D3C — el bicho grande de la época 3 con sus copias desplazadas, tal "
+     "como se sube a la memoria de vídeo: no es un sprite, son 24 caracteres "
+     "que se escriben en la tabla de nombres",
+     "0x6D3C — the era 3 big machine with its shifted copies, exactly as it "
+     "goes up to video memory: it is not a sprite but 24 characters written "
+     "into the name table"),
+    ("caracteres.png",
+     "los dieciséis primeros caracteres del juego, con sus colores: los ocho "
+     "dibujos del disparo —esos puntitos— y la navecita de las vidas (0x6A85), "
+     "el cielo, la marca del enemigo que falta (0x6AD0) y la casilla que va "
+     "debajo del avión (0x6AF0)",
+     "the first sixteen characters of the game, in their colours: the eight "
+     "drawings of the shot —those little dots— and the little ship of the "
+     "lives (0x6A85), the sky, the mark for an enemy still to go (0x6AD0) and "
+     "the cell that goes underneath the plane (0x6AF0)"),
 ]
 
 

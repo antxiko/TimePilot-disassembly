@@ -25,6 +25,10 @@ final de la interrupción se vuelve a mirar el estado del VDP: si mientras tanto
 ha llegado otra, se da otro paso sin salir (0x410B), así que un fotograma largo
 no se traga el siguiente.
 
+Ese reparto está medido en el emulador y sale parejo: entre 8,8 y 11,1
+milisegundos por fase. Las cifras están en [En el
+emulador](EN-EL-EMULADOR.html).
+
 ## Los despachadores
 
 Time Pilot no pone la tabla detrás del `call`, como hacen otros cartuchos de la
@@ -60,19 +64,44 @@ demás cambian de rumbo de golpe.
 
 ## Los actores
 
-| dónde | qué es | cuántos |
-|---|---|---|
-| 0xE200 | el bicho grande del final de época | 1 |
-| 0xE210 | las nubes del fondo | 9 |
-| 0xE230 | los disparos del jugador | 8 |
-| 0xE260 / 0xE2A0 | los enemigos propios de la época | 4 |
-| 0xE2CE | el pasajero | 1 |
-| 0xE2D0 | los enemigos | 7 |
+| dónde | qué es | cuántos | bytes por ficha |
+|---|---|---|---|
+| 0xE200 | el bicho grande del final de época | 1 | 16 |
+| 0xE210 | las nubes del fondo | 9 | — |
+| 0xE230 | los disparos del jugador | 8 | 4 |
+| 0xE260 | las bombas de la época 1 | 4 | 3 |
+| 0xE270 | los disparos enemigos | 6 | 7 |
+| 0xE2A0 | los misiles de las épocas 3, 4 y 5 | 4 | 9 |
+| 0xE2CE | el pasajero | 1 | 2 |
+| 0xE2D0 | los enemigos | 7 | 16 |
 
-Los enemigos y los disparos enemigos se mueven con sprites; las nubes, los
-disparos del jugador y el bicho grande, escribiendo caracteres en la tabla de
-nombres. Esa es la diferencia importante del cartucho: en el MSX solo caben
-cuatro sprites por línea, y así se ahorran ocho.
+Los enemigos, los disparos enemigos, las bombas y los misiles se mueven con
+sprites; las nubes, los disparos del jugador y el bicho grande, escribiendo
+caracteres en la tabla de nombres. Esa es la diferencia importante del cartucho:
+en el MSX solo caben cuatro sprites por línea, y dibujar los ocho disparos y
+el bicho con caracteres ahorra nueve.
+
+El avión del jugador no aparece en la lista porque no tiene ficha: no se mueve.
+
+## Los ocho comportamientos
+
+Cada ficha de enemigo lleva en su byte 1 cuál de los ocho comportamientos le
+toca, y el despachador de 0x606C salta por la tabla de 0x605C. Dos de ellos
+vuelan con la trayectoria escrita en una tabla:
+
+- el **6** va en onda, con los 64 pasos de 0x6322: cada paso es cuánto se le
+  suma a la Y y cuánto a la X. Los 32 primeros bajan 51 píxeles y los 32
+  siguientes son su espejo exacto, así que la Y suma cero y el bicho vuelve a la
+  altura de salida mientras avanza 106 píxeles.
+- el **8** tiene dos trayectorias, y el registro R decide a cara o cruz cuál le
+  toca a cada actor: la corta (0x62E2) son dieciséis tramos que suman +8 de giro,
+  o sea una vuelta entera en 216 fotogramas; la larga (0x6302) abre los tramos
+  hasta 64 fotogramas, 424 en total, y suma −6, así que no llega a cerrar el
+  círculo.
+
+Todos, al cambiar de rumbo, pasan por 0x63A2, que es donde se miran las dos
+banderas del estado: con el bit 1 el actor le dispara al avión, y con el bit 3
+suelta un misil. Las dos se apagan al usarse, así que cada una vale una vez.
 
 ## El sonido
 
@@ -88,9 +117,10 @@ canal: si el que suena vale más, no se le quita el sitio.
 ## Los choques
 
 Todo se compara contra el mismo rectángulo, sacado de una tabla de seis
-(0x4E64): los cuatro bytes son el margen por arriba, por abajo, por la izquierda
-y por la derecha. Los disparos, que viven en casillas de la tabla de nombres, se
-pasan antes a coordenadas de pixel multiplicando por ocho (0x5C2A).
+(0x4E64): los cuatro bytes son la Y mínima, la Y máxima, la X mínima y la X
+máxima, y cada clase de choque tiene el suyo. Los disparos, que viven en
+casillas de la tabla de nombres, se pasan antes a coordenadas de píxel
+multiplicando por ocho (0x5C2A).
 
 ## La demo
 

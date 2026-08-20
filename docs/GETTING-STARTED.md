@@ -44,6 +44,7 @@ OK: reproducible byte a byte
 | `src/timepilot.nocode` | the zones the tracer must not read as code |
 | `tools/` | the tracer, the listing generator, the checks and the drawing tools |
 | `tests/` | the tests on the listing and the notes |
+| `medidas/` | the raw output of the openMSX measurements |
 | `docs/` | this site |
 | `work/` | what `make` produces along the way |
 
@@ -74,6 +75,18 @@ What cannot be read is drawn. `tools/graficos.py` uploads to a make-believe vide
 memory exactly what the cartridge uploads, at the same addresses, and builds the
 screen from its own label lists: if the reading were wrong, it would come out as
 noise.
+
+## The tools that came out of this
+
+| | |
+|---|---|
+| `tools/densidad.py` | measures, routine by routine, how much of the listing carries a comment, and lists the ones below the bar |
+| `tools/valida_c.py` | catches comments anchored mid-instruction, and duplicates |
+| `tools/quien_toca_la_ram.py` | for each RAM byte, which instructions name it and from where. This is what caught the errors in the RAM map |
+| `tools/quien_apunta.py` | who reads a hole in the data, which is how holes get closed |
+| `tools/marca_konami.py` | looks for Konami's hidden mark at the end of the ROM |
+| `tools/graficos.py` | rebuilds video memory and draws the screens |
+| `tools/omsx_*.tcl` | the measurements in openMSX, told in [In the emulator](IN-THE-EMULATOR.html) |
 
 ## Reproducibility
 

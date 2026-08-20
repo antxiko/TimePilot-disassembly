@@ -1,0 +1,7 @@
+muestras del PC cada 1 ms de tiempo emulado, 60 s de partida (t=30 a t=90)
+  muestras                                  59910
+  con la interrupcion en marcha             30048   (50.16 %)
+  con el PC dentro de 0x4037-0x4117         717   (1.20 %)
+    (esta segunda cifra NO es el coste: el gancho llama a rutinas de fuera)
+  la interrupcion mas corta                 0.072 ms
+  la mas larga                              15.151 ms

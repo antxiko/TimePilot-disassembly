@@ -44,6 +44,7 @@ OK: reproducible byte a byte
 | `src/timepilot.nocode` | las zonas que el trazador no debe leer como código |
 | `tools/` | el trazador, el generador del listado, las comprobaciones y las herramientas de dibujo |
 | `tests/` | los tests sobre el listado y las anotaciones |
+| `medidas/` | la salida en crudo de las medidas de openMSX |
 | `docs/` | esta web |
 | `work/` | lo que `make` va dejando por el camino |
 
@@ -74,6 +75,18 @@ Lo que no se puede leer, se dibuja. `tools/graficos.py` sube a una memoria de
 vídeo de mentira lo mismo que sube el cartucho, con sus mismas direcciones, y
 monta la pantalla con sus mismas listas de rótulos: si la lectura estuviera mal,
 saldría ruido.
+
+## Las herramientas que se han ido haciendo
+
+| | |
+|---|---|
+| `tools/densidad.py` | mide, rutina a rutina, qué porcentaje del listado lleva comentario, y saca las que están por debajo del listón |
+| `tools/valida_c.py` | caza los comentarios anclados a media instrucción y los repetidos |
+| `tools/quien_toca_la_ram.py` | para cada byte de RAM, qué instrucciones lo nombran y desde dónde. Con esto se cazaron los errores del mapa de RAM |
+| `tools/quien_apunta.py` | quién lee un hueco de datos, que es como se cierran |
+| `tools/marca_konami.py` | busca al final de la ROM la marca oculta de Konami |
+| `tools/graficos.py` | reconstruye la memoria de vídeo y dibuja las pantallas |
+| `tools/omsx_*.tcl` | las medidas en openMSX, contadas en [En el emulador](EN-EL-EMULADOR.html) |
 
 ## Reproducibilidad
 

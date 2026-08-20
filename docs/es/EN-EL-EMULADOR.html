@@ -1,0 +1,114 @@
+<title>En el emulador — Time Pilot</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="EN-EL-EMULADOR.html" style=color:var(--tinta)>En el emulador</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../IN-THE-EMULATOR.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="en-el-emulador">En el emulador</h1>
+<p>Todo lo demás de estas páginas sale de leer el binario. Esta página es lo contrario: son medidas, tomadas sobre el cartucho corriendo en openMSX, y cada una dice sobre qué ventana se ha tomado. Lo que no se ha medido, no está.</p>
+<h2 id="como-se-ha-medido">Cómo se ha medido</h2>
+<p>La base es <b>una partida de verdad</b>, jugada y grabada en un Philips VG-8020 con <code>tools/omsx_graba.tcl</code>: 170 segundos, la época 1 de t=10 a t=134, la 2 hasta t=164 y el fin de partida en t=166. El replay se guarda entero, así que las medidas se pueden repetir tantas veces como haga falta sobre exactamente la misma partida.</p>
+<p><code>tools/omsx_repasa.tcl</code> la recorre segundo a segundo leyendo la RAM del juego y dice en qué estado está en cada momento —demo o partida, época, ronda, vidas, enemigos que faltan—, y con eso se elige la ventana: <b>de t=30 a t=90</b>, sesenta segundos seguidos de partida en la época 1, sin demo por medio.</p>
+<p>Luego <code>tools/omsx_mide.tcl</code> pone dos puntos de ruptura, uno en la entrada del gancho del cartucho (0x4037) y otro en su salida (0x4112), y cronometra el tiempo emulado entre los dos.</p>
+<h2 id="lo-que-tarda-la-interrupcion">Lo que tarda la interrupción</h2>
+<table><tr><th></th><th></th></tr><tr><td>interrupciones de la ROM en 60 s emulados</td><td>2.980</td></tr><tr><td>cuadros por segundo</td><td>49,67</td></tr><tr><td>tiempo dentro del gancho</td><td>30,07 s de 60</td></tr><tr><td><b>porcentaje del cuadro</b></td><td><b>50,11 %</b></td></tr><tr><td>por interrupción</td><td>10,09 ms de un cuadro de 20,1</td></tr><tr><td>la más corta / la más larga</td><td>0,07 ms / 15,15 ms</td></tr></table>
+<p>O sea que <b>la mitad del tiempo de la máquina se la lleva la interrupción del cartucho</b>, y la otra mitad es todo lo que queda para el programa principal.</p>
+<p>La cifra está comprobada con un segundo método que no comparte nada con el primero: muestrear el contador de programa cada milisegundo y contar cuántas muestras caen con la interrupción en marcha. Salen 30.048 muestras de 59.910, o sea el <b>50,16 %</b> (<code>tools/omsx_control_pc.tcl</code>).</p>
+<h2 id="cuanto-cuesta-cada-fase-del-ciclo-de-seis">Cuánto cuesta cada fase del ciclo de seis</h2>
+<p>La interrupción no hace lo mismo en todos los fotogramas: 0xE01F cuenta de 0 a 5 y cada fase mueve una cosa. Midiendo por fase, en la misma ventana:</p>
+<table><tr><th>fase</th><th>qué mueve</th><th>ms de media</th></tr><tr><td>0</td><td>los disparos, las nubes, el avión y los choques</td><td>10,18</td></tr><tr><td>1</td><td>los enemigos</td><td>10,14</td></tr><tr><td>2</td><td>el fondo que se desplaza</td><td>11,10</td></tr><tr><td>3</td><td>los enemigos</td><td>10,17</td></tr><tr><td>4</td><td>el bicho grande y la cuenta de la fase</td><td>8,81</td></tr><tr><td>5</td><td>los enemigos</td><td>10,17</td></tr></table>
+<p>Entre la fase más cara y la más barata hay <b>2,3 milisegundos</b>: el reparto está equilibrado de verdad, no es solo una manera de ordenar el trabajo.</p>
+<h2 id="al-vdp-por-fotograma">Al VDP, por fotograma</h2>
+<table><tr><th></th><th></th></tr><tr><td>escrituras al puerto 0x98 (datos)</td><td>360,6</td></tr><tr><td>escrituras al puerto 0x99 (dirección)</td><td>106,6</td></tr></table>
+<p>De las 360,6 de datos, <b>96 son siempre las mismas</b>: la tabla de atributos de sprite entera, que la interrupción sube en cada fotograma desde su copia en RAM (0x40CA) sin mirar si ha cambiado algo.</p>
+<h2 id="cuanto-mas-hay-volando-mas-cuesta">Cuanto más hay volando, más cuesta</h2>
+<p>El 50 % de arriba es una ventana tranquila. Midiendo otras dos, con el mismo método:</p>
+<table><tr><th>ventana</th><th>qué pasaba</th><th>% del cuadro</th></tr><tr><td>replay, t=30 a t=90</td><td>partida, época 1</td><td>50,11 %</td></tr><tr><td>30 s pilotando</td><td>partida, época 1, de 25 a 17 enemigos por derribar</td><td>59,04 %</td></tr><tr><td>60 s de demo</td><td>la demo, que dispara sin parar</td><td>71,32 %</td></tr></table>
+<p>Las tres son medidas, no estimaciones. Lo que <b>no</b> está medido es el reparto de esa diferencia: lo único que se puede decir sin salirse de lo comprobado es que la ventana más cara es la que tiene más cosas en el aire, y que la demo, que aprieta el botón en todos los fotogramas, es el peor caso de las tres.</p>
+<h2 id="la-trampa-que-costo-una-tarde">La trampa que costó una tarde</h2>
+<p>El primer intento de medir el coste fue muestrear el contador de programa y contar cuántas muestras caían <b>entre 0x4037 y 0x4117</b>, que es el trozo de cartucho donde vive el gancho. Salió un <b>1,20 %</b>.</p>
+<p>Esa cifra no mide nada: el gancho llama a rutinas repartidas por todo el cartucho, así que la mayor parte del tiempo el contador de programa está fuera de ese rango aunque la interrupción esté trabajando. Lo que hay que contar no es dónde está el PC, sino si se ha entrado y todavía no se ha salido: una bandera que enciende el punto de ruptura de la entrada y apaga el de la salida.</p>
+<p>Las dos cifras están en <code>medidas/control_pc.txt</code>, una al lado de la otra, por si a alguien le sirve el aviso. Ahí, en <code>medidas/</code>, está la salida en crudo de todas estas herramientas.</p>
+<h2 id="una-cifra-que-sale-igual-medida-que-leida">Una cifra que sale igual medida que leída</h2>
+<p>Leyendo el código, 0xE120 arranca cada fase en 25 y baja uno por cada enemigo derribado; cuando llega a cero sale el bicho grande y la cuenta se queda en 5. Leyendo esa misma dirección segundo a segundo en el replay sale exactamente eso: 25 al empezar, bajando, y 5 en cuanto aparece el bicho. Es lo que se pide de una medida: que confirme la lectura o la tire abajo.</p>
+<h2 id="las-herramientas">Las herramientas</h2>
+<table><tr><th></th><th></th></tr><tr><td><code>tools/omsx_graba.tcl</code></td><td>graba la partida en un replay</td></tr><tr><td><code>tools/omsx_repasa.tcl</code></td><td>repasa el replay segundo a segundo y dice qué había</td></tr><tr><td><code>tools/omsx_mide.tcl</code></td><td>la medida: interrupción, fases y VDP</td></tr><tr><td><code>tools/omsx_control_pc.tcl</code></td><td>el control independiente, por muestreo del PC</td></tr></table>
+<p>El grabador lleva un <code>after quit { salva cierre }</code>: sin él, todo lo jugado desde el último guardado automático se pierde al cerrar la ventana. Se aprendió perdiendo una partida.</p>
+<footer><p><em>Time Pilot</em> lo publico Konami para MSX; su numero de catalogo es RC-703 y el propio cartucho firma <b>&copy;KONAMI 1983</b>, dos veces y con su propia fuente: bajo el titulo y al pie del marcador. No hay creditos ni iniciales en ninguna parte del binario. Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion.</p></footer></div>

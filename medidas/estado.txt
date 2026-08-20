@@ -1,0 +1,4 @@
+reverse: enabled
+machine: Philips_VG_8020
+tiempo emulado: 170.1988613077919
+ultimo guardado: cierre

@@ -65,8 +65,8 @@ as data may come out as code, and no entry point may fall inside one.
 | bytes of data | 7,473 |
 | bytes unidentified | **0** |
 | named labels | 593 |
-| anchored comments | 183 |
-| explained data ranges | 102 |
+| anchored comments | 801 |
+| explained data ranges | 106 |
 
 ## Some of what turned up
 
@@ -96,6 +96,18 @@ as data may come out as code, and no entry point may fall inside one.
 - **Silence is an empty sound program.** To shut channel 2 up at once, 0x5C8F
   points it at the 0xFF that closes the program at 0x7E40: the channel reads the
   end and goes quiet.
+- **The helicopters do not turn because there are no drawings.** The biplane,
+  the fighter and the jet bring eight rotations each; the era 3 helicopter
+  brings 96 bytes, three drawings (0x75F2). And that era gets exactly the three
+  behaviours that do not turn (0x68EE).
+- **The interrupt eats half the frame.** Measured in openMSX over a recorded
+  game: 50.11% of the frame, 10.09 ms out of 20.1, checked by two independent
+  methods; and the six-phase split comes out even, from 8.81 to 11.10 ms. With
+  the attract mode running it goes up to 71.32%.
+- **This cartridge does not carry Konami's hidden mark.** Other cartridges from
+  the same house hide their catalogue number and title in katakana at the end of
+  the ROM, a detail documented by Manuel Pazos; here there are only 226 bytes of
+  0xFF from 0x7F1E on.
 
 ## Getting started
 
@@ -107,7 +119,7 @@ sha256 `183e80262301b18d41762d64a2fc326f4a4bef17832109225637e184d54a70d9`.
 make          # trace, build the listing and check everything
 make verify   # assemble and compare with the cartridge
 make sanity   # what reassembly cannot catch
-make test     # the 22 tests on the listing
+make test     # the 23 tests on the listing
 ```
 
 ## Licence and attribution

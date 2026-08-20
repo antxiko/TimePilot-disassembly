@@ -17,7 +17,7 @@ NOTES = os.path.join(RAIZ, "src", "timepilot.notes")
 DOCS = os.path.join(RAIZ, "docs")
 OTROS_JUEGOS = ("Pitfall", "Temptations", "Stardust", "Ale Hop", "Colt 36",
                 "Middle Earth", "Monkey", "F-1 Spirit", "Athletic",
-                "Antarctic", "Pippols")
+                "Antarctic", "Pippols", "Frogger")
 
 ORG, FIN = 0x4000, 0x8000
 
@@ -194,6 +194,7 @@ class TestWeb(unittest.TestCase):
                ("THE-CARTRIDGE.md", "EL-CARTUCHO.md"),
                ("THE-CODE.md", "EL-CODIGO.md"),
                ("FINDINGS.md", "HALLAZGOS.md"),
+               ("IN-THE-EMULATOR.md", "EN-EL-EMULADOR.md"),
                ("OPEN-QUESTIONS.md", "PREGUNTAS-ABIERTAS.md")]
 
     def test_cada_pagina_tiene_su_pareja_en_el_otro_idioma(self):
@@ -228,6 +229,33 @@ class TestWeb(unittest.TestCase):
             texto = f.read()
         self.assertIn("CODIGO = 8911", texto)
         self.assertIn("DATOS = 7473", texto)
+
+    def test_los_readme_publican_las_cuentas_de_las_notas(self):
+        """Las cifras de los README se quedan viejas solas: aqui se atan.
+
+        Se cuentan las directivas del .notes y se exige que los dos README
+        publiquen esos mismos numeros. Si se comenta mas codigo y no se toca
+        el README, este test se pone rojo.
+        """
+        cuentas = {clave: len(directivas(clave)) for clave in "LCD"}
+        for fichero, filas in (
+                ("README.md", (("named labels", "L"),
+                               ("anchored comments", "C"),
+                               ("explained data ranges", "D"))),
+                ("README.es.md", (("etiquetas con nombre", "L"),
+                                  ("comentarios anclados", "C"),
+                                  ("rangos de datos con explicación", "D")))):
+            with open(os.path.join(RAIZ, fichero), encoding="utf-8") as f:
+                texto = f.read()
+            for rotulo, clave in filas:
+                fila = re.search(r"\|\s*%s\s*\|\s*([0-9.,]+)\s*\|"
+                                 % re.escape(rotulo), texto)
+                self.assertIsNotNone(fila, "%s no publica '%s'"
+                                     % (fichero, rotulo))
+                dice = int(fila.group(1).replace(".", "").replace(",", ""))
+                self.assertEqual(dice, cuentas[clave],
+                                 "%s dice %d %s y en las notas hay %d"
+                                 % (fichero, dice, rotulo, cuentas[clave]))
 
     def test_las_paginas_no_inventan_direcciones(self):
         """Cada 0xNNNN del cartucho que se cite tiene que existir."""

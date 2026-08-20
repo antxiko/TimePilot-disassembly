@@ -67,8 +67,8 @@ entrada puede caer dentro de uno.
 | bytes de datos | 7.473 |
 | bytes sin identificar | **0** |
 | etiquetas con nombre | 593 |
-| comentarios anclados | 183 |
-| rangos de datos con explicación | 102 |
+| comentarios anclados | 801 |
+| rangos de datos con explicación | 106 |
 
 ## Algunas cosas que han salido
 
@@ -97,6 +97,18 @@ entrada puede caer dentro de uno.
 - **El silencio es un programa de sonido vacío.** Para callar el canal 2 de
   golpe, 0x5C8F le apunta el puntero al 0xFF que cierra el programa de 0x7E40:
   el canal lee el final y se calla.
+- **Los helicópteros no giran porque no hay dibujos.** El biplano, el caza y el
+  reactor traen ocho rotaciones cada uno; el helicóptero de la época 3 trae 96
+  bytes, tres dibujos (0x75F2). Y a esa época le tocan justo los tres
+  comportamientos que no giran (0x68EE).
+- **La interrupción se come la mitad del fotograma.** Medido en openMSX sobre
+  una partida grabada: 50,11 % del cuadro, 10,09 ms de 20,1, con dos métodos
+  independientes que dan lo mismo; y el reparto en seis fases sale parejo, de
+  8,81 a 11,10 ms. Con la demo en marcha sube al 71,32 %.
+- **Este cartucho no lleva la marca oculta de Konami.** Otros cartuchos de la
+  casa esconden al final de la ROM su número de catálogo y el título en
+  katakana, un detalle que documentó Manuel Pazos; aquí solo hay 226 bytes de
+  0xFF desde 0x7F1E.
 
 ## Cómo empezar
 
@@ -108,7 +120,7 @@ sha256 `183e80262301b18d41762d64a2fc326f4a4bef17832109225637e184d54a70d9`.
 make          # traza, construye el listado y lo comprueba todo
 make verify   # ensambla y compara con el cartucho
 make sanity   # lo que el reensamblado no puede cazar
-make test     # los 22 tests sobre el listado
+make test     # los 23 tests sobre el listado
 ```
 
 ## Licencia y atribución

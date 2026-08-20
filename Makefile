@@ -94,6 +94,11 @@ imagenes: $(ROM)
 	python3 tools/graficos.py $(ROM) work/gfx
 	@cp work/gfx/logo.png work/gfx/titulo.png work/gfx/menu.png docs/imagenes/
 	@cp work/gfx/letras.png work/gfx/aviones.png work/gfx/sprites.png docs/imagenes/
+	@cp work/gfx/caracteres.png docs/imagenes/
+	@cp work/gfx/partida1.png work/gfx/partida2.png work/gfx/partida3.png docs/imagenes/
+	@cp work/gfx/partida4.png work/gfx/partida5.png docs/imagenes/
+	@cp work/gfx/bicho1.png work/gfx/bicho2.png work/gfx/bicho3.png docs/imagenes/
+	@cp work/gfx/bicho4.png work/gfx/bicho5.png docs/imagenes/
 
 web: imagenes
 	python3 tools/md2html.py docs en

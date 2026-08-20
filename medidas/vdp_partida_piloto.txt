@@ -1,0 +1,54 @@
+# MODO partida   PILOTO 1
+estado_al_abrir  vidas 3 puntos 000000 quedan 25 demo 0 fase 1 muerto 0 fin 0
+estado_al_cerrar vidas 2 puntos 001350 quedan 8 demo 0 fase 1 muerto 0 fin 0
+ventana_emulada_s  60.000003
+fotogramas_VDP     3010
+pasadas_0x0038     2980
+vueltas_bucle_ppal 47391   (15.74 por fotograma)
+
+# PARA QUE ERA CADA PAREJA DEL 0x99 (el byte alto, leido de D en 0x401B)
+registro                                        0          0.00
+vram_escribir                              132362         43.97
+vram_leer                                   13121          4.36
+
+# PUERTO 0x98 (datos) POR TRAMO
+2 gancho: ciclo de seis     4098-40AC      110851         36.83
+4 gancho: sube los sprites  40CA-40D5      285792         94.95
+5 gancho: parpadeo y sonido 40D5-40F0          86          0.03
+7 el programa principal                    582754        193.61
+TOTAL                                      979483        325.41
+
+# PUERTO 0x99 (direccion/registros) POR TRAMO
+2 gancho: ciclo de seis     4098-40AC       62452         20.75
+4 gancho: sube los sprites  40CA-40D5        5954          1.98
+5 gancho: parpadeo y sonido 40D5-40F0          86          0.03
+7 el programa principal                    222474         73.91
+TOTAL                                      290966         96.67
+
+# PUERTO 0x98 (datos), tramo y PC
+tramo                                  PC      escrituras por_fotograma
+2 gancho: ciclo de seis     4098-40AC  0x4022       14976          4.98
+2 gancho: ciclo de seis     4098-40AC  0x512D       90896         30.20
+2 gancho: ciclo de seis     4098-40AC  0x5406         936          0.31
+2 gancho: ciclo de seis     4098-40AC  0x543F           1          0.00
+2 gancho: ciclo de seis     4098-40AC  0x5537        2123          0.71
+2 gancho: ciclo de seis     4098-40AC  0x558D        1919          0.64
+4 gancho: sube los sprites  40CA-40D5  0x4022      285792         94.95
+5 gancho: parpadeo y sonido 40D5-40F0  0x4022          86          0.03
+7 el programa principal                0x4022        1406          0.47
+7 el programa principal                0x402C        4448          1.48
+7 el programa principal                0x4765          12          0.00
+7 el programa principal                0x4AA7      284349         94.47
+7 el programa principal                0x4AAD      284349         94.47
+7 el programa principal                0x4CA7        8190          2.72
+
+# PUERTO 0x99 (direccion/registros), tramo y PC
+tramo                                  PC      escrituras por_fotograma
+2 gancho: ciclo de seis     4098-40AC  0x4018       31226         10.37
+2 gancho: ciclo de seis     4098-40AC  0x401B       31226         10.37
+4 gancho: sube los sprites  40CA-40D5  0x4018        2977          0.99
+4 gancho: sube los sprites  40CA-40D5  0x401B        2977          0.99
+5 gancho: parpadeo y sonido 40D5-40F0  0x4018          43          0.01
+5 gancho: parpadeo y sonido 40D5-40F0  0x401B          43          0.01
+7 el programa principal                0x4018      111237         36.96
+7 el programa principal                0x401B      111237         36.96

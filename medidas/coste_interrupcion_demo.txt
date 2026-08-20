@@ -1,0 +1,34 @@
+# MODO demo   PILOTO 0
+estado_al_abrir  vidas 1 puntos 000000 quedan 25 demo 1 fase 1 muerto 0 fin 0
+estado_al_cerrar vidas 1 puntos 000000 quedan 4 demo 1 fase 1 muerto 0 fin 0
+
+# CONTROLES
+ventana_emulada_s    60.000003
+fotogramas_VDP       3009
+fotogramas_por_s     50.1500
+periodo_de_cuadro_us 19940.18
+pasadas_0x0038       3009
+entradas_0x4037      3009
+salidas_0x4112       3008
+pasos_0x403D         3010
+repeticiones_extra   1
+salidas_desparejadas 0
+fotogramas_sin_int   0
+z80_freq             3579545
+
+# DENTRO DEL GANCHO, POR ESTADO
+estado       veces     total_s   media_us ciclosZ80  %ventana
+demo_fase     3008   42.792740    14226.3     50924    71.32%
+
+# CUADRE: dentro + fuera = periodo entre interrupciones
+estado       veces  dentro_us   fuera_us    suma_us   %dentro
+demo_fase     3008    14226.3     5716.9    19943.2    71.33%
+
+# DENTRO DEL GANCHO, POR FASE DEL CICLO DE SEIS (0xE01F a la salida)
+estado/fase      veces     total_s   media_us ciclosZ80
+demo_fase/0        500    8.133882    16267.8     58231
+demo_fase/1        501    7.472506    14915.2     53390
+demo_fase/2        502    5.435670    10828.0     38759
+demo_fase/3        502    7.451935    14844.5     53137
+demo_fase/4        502    6.842789    13631.1     48793
+demo_fase/5        501    7.455957    14882.1     53271

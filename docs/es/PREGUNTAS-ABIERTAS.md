@@ -4,38 +4,39 @@ Lo que el binario no resuelve por sí solo. El cartucho está explicado byte a
 byte y el listado vuelve a dar la ROM; esto es lo que queda por medir o por
 decidir.
 
-## Qué hace cada uno de los ocho comportamientos
-
-Las siete fichas de enemigo de 0xE2D0 llevan cada una uno de los ocho
-comportamientos de la tabla de 0x605C, y lo que se puede leer del código es
-cómo eligen la dirección y cada cuánto la cambian: unos sortean el rumbo con el
-registro R, otros apuntan al centro de la pantalla, otros se paran a disparar.
-Lo que **no** está cerrado es qué enemigo del juego es cada uno: eso hay que
-jugarlo y mirarlo, o medirlo en el emulador.
-
-## Los 192 bytes de 0x62E2
-
-Entre el último comportamiento y la rutina que elige el sprite hay 192 bytes que
-solo se leen desde ahí, con índices que salen de la dirección y del fotograma
-de la animación. Están declarados como lo que son —tablas del comportamiento de
-los enemigos— pero no se ha separado entrada por entrada.
-
-## El segundo juego de nubes
+## Cuatro bytes de más en el segundo juego de nubes
 
 0x6981 tiene 68 bytes que 0x50F8 lee en grupos de dieciséis, y sobran cuatro al
 final. O el último grupo es más corto, o esos cuatro bytes no los usa nadie; el
 código no lo aclara.
 
-## La pantalla de juego, sin reconstruir del todo
+## Dos bytes de RAM que nadie lee
 
-`tools/graficos.py` rehace la pantalla de título entera —los caracteres, sus
-colores y las listas de rótulos— y sale bien. La pantalla de partida se
-reconstruye a medias: el cielo y los colores de la época salen, pero el marcador
-todavía no aparece con su color, así que aquí no se publica ninguna imagen de
-partida. Lo que no se puede comprobar, no se enseña.
+0xE124 y 0xE125 se ponen a cero al empezar cada vida (0x47E9) y no se les ha
+encontrado ningún lector. Están en medio de las cuentas de la fase —a un lado
+los enemigos que faltan, al otro los que han salido—, así que lo más probable es
+que sean una cuenta que se dejó de usar, pero eso ya es una suposición: lo
+comprobable es que se escriben y no se leen.
 
-## Nada medido en el emulador
+## Los veinticuatro bytes de 0x6909
 
-Todo lo que hay en estas páginas sale de leer el binario. No hay ni una medida
-de openMSX: ni cuánto tarda la interrupción, ni cuántas escrituras al VDP hace
-por fotograma, ni si el reparto en seis fotogramas llega justo o sobrado.
+Los leen 0x5D4A y 0x5EC7, las dos rutinas que miran los choques, y con eso está
+acotado de dónde salen y para qué sirven; lo que no se ha cerrado es qué
+significa cada byte por separado.
+
+## Qué suena en cada programa de sonido
+
+Los diecisiete programas están acotados y se sabe quién pide cada uno: hay tres
+canales de la música de arranque, la música que suena al cambiar de época y
+trece efectos. Lo que no está hecho es escuchar uno por uno y ponerles nombre
+—«el disparo», «la explosión»— más allá de los que ya se llaman así porque su
+llamador no deja dudas.
+
+---
+
+Y lo que estaba en esta página y **ya está contestado**: qué enemigo es cada uno
+de los ocho comportamientos y por qué la época 3 no gira, los 192 bytes de
+0x62E2 —que eran tres tablas: dos trayectorias y una onda—, la pantalla de
+partida, que ahora se reconstruye entera, y las medidas del emulador. Están en
+[El juego](EL-JUEGO.html), [Hallazgos](HALLAZGOS.html) y [En el
+emulador](EN-EL-EMULADOR.html).
