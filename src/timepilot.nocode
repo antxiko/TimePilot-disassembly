@@ -1,0 +1,10 @@
+# Zonas que el trazador NO debe leer como codigo: las tablas de palabras de los
+# despachadores. Cada una la carga un `ld hl,nn` y la lee 0x5961.
+0x4118 0x4123   tabla de 6 palabras (ld hl,0x4118 en 0x40A3)
+0x52B9 0x52D8   tabla de 16 palabras (ld hl,0x52B9 en 0x52A0)
+0x5550 0x556F   tabla de 16 palabras (ld hl,0x5550 en 0x553D)
+0x59FA 0x5A09   tabla de 8 palabras (ld hl,0x59FA en 0x59A8)
+0x5A7C 0x5A8B   tabla de 8 palabras (ld hl,0x5A7C en 0x5A43)
+0x5FE3 0x5FF2   tabla de 8 palabras (ld hl,0x5FE3 en 0x5C3F)
+0x605C 0x606B   tabla de 8 palabras (ld hl,0x605C en 0x6070)
+0x6697 0x66A6   tabla de 8 palabras (ld hl,0x6697 en 0x6690)

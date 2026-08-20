@@ -1,0 +1,110 @@
+<title>El juego — Time Pilot</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html" style=color:var(--tinta)>El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../THE-GAME.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="el-juego">El juego</h1>
+<p>Un avión en medio de la pantalla, dieciséis direcciones, enemigos que vienen de todas partes y, cuando has derribado los que hacían falta, un bicho enorme al que hay que tumbar para saltar a otra época. Todo lo que hay en esta página sale de leer el código que lo hace.</p>
+<h2 id="la-pantalla-de-titulo">La pantalla de título</h2>
+<p><img src="../imagenes/menu.png" alt="La pantalla de título con el menú"></p>
+<p>El cartucho firma <b>©KONAMI 1983</b> dos veces con su propia fuente: bajo el título y al pie del marcador. Debajo, PLAY SELECT y cuatro opciones, que son cuatro listas de rótulos seguidas (0x4EE8 y siguientes): uno o dos jugadores, con joystick o con teclado. La tecla que se pulse decide las dos cosas a la vez (0x438E), y 0xE007 se queda con el mando elegido.</p>
+<p>Si no se toca nada, arranca la demo. Y la demo no lleva un guión grabado: el &quot;joystick&quot; sale de leer <b>el propio código del cartucho</b>, con el registro R como azar. Está contado en <a href="HALLAZGOS.html">Hallazgos</a>.</p>
+<h2 id="las-cinco-epocas">Las cinco épocas</h2>
+<p>El marcador pinta el año de la época que toca, cuatro caracteres sacados de la tabla de 0x4E7C:</p>
+<table><tr><th>época</th><th>año</th></tr><tr><td>1</td><td>1910</td></tr><tr><td>2</td><td>1940</td></tr><tr><td>3</td><td>1970</td></tr><tr><td>4</td><td><b>1984</b></td></tr><tr><td>5</td><td>2001</td></tr></table>
+<p>Cada época trae su propio juego de caracteres (0x73F4 y siguientes), sus decorados (0x6BF2 y siguientes) y su lista de colores (0x4D39 y siguientes), que es lo que le cambia el color al cielo. Al pasar de la 5 se vuelve a la 1 (0x489D).</p>
+<h2 id="el-avion">El avión</h2>
+<p>El mando no mueve el avión: le dice <b>hacia dónde tiene que mirar</b>. La tabla de 0x545B convierte el nibble del joystick en una de las dieciséis direcciones —la 0 es arriba, la 4 la derecha, la 8 abajo y la 12 la izquierda—, y el avión va girando un paso cada vez hasta llegar, siempre por el lado corto (0x53CE).</p>
+<p><img src="../imagenes/aviones.png" alt="Los dieciséis dibujos del avión"></p>
+<p>Cada dirección tiene sus 32 bytes de dibujo en 0x6F2B, y en la memoria de vídeo solo hay uno: el que toca, que se sube en cuanto el avión gira (0x53E3). Lo que se mueve es el fondo, que se desplaza en la dirección contraria (0x4FE9), y las nueve nubes, que son caracteres de la tabla de nombres y dan la vuelta al llegar al borde.</p>
+<h2 id="los-disparos">Los disparos</h2>
+<p>Con el botón salen hasta <b>ocho disparos a la vez</b>, cada uno con su ficha de cuatro bytes en 0xE230: la casilla de la tabla de nombres, la dirección en la que vuela y el carácter que lo dibuja. La tabla de 0x54F6 dice por qué casilla sale cada uno según la dirección del avión.</p>
+<p>No son sprites. Cada fotograma se borran de su casilla, se calcula la siguiente —una rutina por dirección, en 0x5570 y siguientes— y se vuelven a pintar; y antes de pintarse <b>leen</b> lo que hay en la casilla (0x557B): si no es cielo, el disparo no se dibuja. Con el mando se pueden encadenar cuatro seguidos (0x54E8); la demo dispara siempre.</p>
+<h2 id="los-enemigos">Los enemigos</h2>
+<p>Siete fichas de diez bytes en 0xE2D0, con <b>ocho comportamientos</b> distintos (tabla de 0x605C). Todos acaban llamando al mismo movedor; lo que cambia es cómo eligen la dirección y cada cuánto la cambian: unos van al azar, otros apuntan al centro de la pantalla —que es donde está siempre el avión— y otros se paran a disparar. La rutina de 0x5AB5 es la que dice, para una posición cualquiera, cuál de las ocho direcciones lleva al centro.</p>
+<p>Además hay cuatro fichas propias de la época en 0xE260 (época 1) o 0xE2A0 (de la 3 en adelante), y de la época 3 en adelante salen dos enemigos más cada ocho pasos (0x5BAE).</p>
+<p>Derribar un enemigo son <b>50 puntos</b>; los de la época, <b>500</b>; y recoger al pasajero, otros 500.</p>
+<h2 id="el-bicho-grande">El bicho grande</h2>
+<p>Cuando ya no queda ninguno de los enemigos que hacían falta, sale el bicho grande (0x6540). Tampoco es un sprite: son <b>seis caracteres de ancho por cuatro de alto</b> pintados en la tabla de nombres (0x69C5), que se borran y se vuelven a pintar cada vez que se mueve. Aguanta <b>veinticuatro impactos</b> (0x5CF5), vale 500 puntos y, al caer, se lleva por delante todo lo que hubiera en pantalla (0x5DE1). Si se sale por el borde sin que lo derriben, la fase se da por terminada igual.</p>
+<h2 id="vidas-rondas-y-puntos">Vidas, rondas y puntos</h2>
+<p>Dos vidas por jugador (0x443E) y una más a los <b>10.000 puntos</b>, y luego cada <b>50.000</b> (0x48F0). Los puntos son tres bytes BCD, seis cifras, y se pintan sumándole 0xE5 a cada una, que es donde empiezan las cifras en el juego de caracteres.</p>
+<p>Los enemigos que hay que derribar para que salga el bicho grande empiezan en <b>25</b> y suben de cinco en cinco cada cinco rondas, hasta un tope de <b>50</b> (0x48A5). Con dos jugadores, cada uno lleva su época, su ronda y su cuenta, y se turnan al perder una vida (0x4AB3).</p>
+<footer><p><em>Time Pilot</em> lo publico Konami para MSX; su numero de catalogo es RC-703 y el propio cartucho firma <b>&copy;KONAMI 1983</b>, dos veces y con su propia fuente: bajo el titulo y al pie del marcador. No hay creditos ni iniciales en ninguna parte del binario. Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion.</p></footer></div>

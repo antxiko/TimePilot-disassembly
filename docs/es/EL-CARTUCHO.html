@@ -1,0 +1,113 @@
+<title>El cartucho — Time Pilot</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html" style=color:var(--tinta)>El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../THE-CARTRIDGE.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="el-cartucho">El cartucho</h1>
+<h2 id="la-cabecera-y-la-maquina">La cabecera y la máquina</h2>
+<p>Los dieciocho primeros bytes son la cabecera que lee la BIOS:</p>
+<pre><code>4000  41 42        &quot;AB&quot;, la firma de un cartucho
+4002  03 42        INIT = 0x4203
+4004  00 00 00 00 00 00   STATEMENT, DEVICE y TEXT a cero
+400A  00 x8        relleno</code></pre>
+<p>Con la cabecera en 0x4000 la BIOS mapea el cartucho en la <b>página 1</b> (0x4000-0x7FFF) y salta a INIT al terminar de arrancar. INIT escribe <code>jp 0x4037</code> en el gancho H.KEYI (0xFD9A), borra la RAM de 0xE000 a 0xE7FE y deja la pila justo detrás, en 0xE7FF. A partir de ahí el trabajo se reparte: el programa principal lleva la partida —marcador, vidas, cambio de época— y la interrupción mueve todo lo que se ve.</p>
+<p>Con 0xE000-0xE7FF de RAM basta un MSX de 16 KB.</p>
+<h2 id="la-memoria-de-video">La memoria de vídeo</h2>
+<p>SCREEN 2, con los ocho registros de 0x4D05:</p>
+<table><tr><th>registro</th><th>valor</th><th>qué dice</th></tr><tr><td>R0</td><td>0x02</td><td>modo gráfico 2</td></tr><tr><td>R1</td><td>0xE2</td><td>16 K, pantalla e interrupción encendidas, sprites de 16 × 16</td></tr><tr><td>R2</td><td>0x0E</td><td>tabla de nombres en 0x3800</td></tr><tr><td>R3</td><td>0x7F</td><td>tabla de color en 0x0000</td></tr><tr><td>R4</td><td>0x07</td><td>tabla de patrones en 0x2000</td></tr><tr><td>R5</td><td>0x76</td><td>atributos de sprite en 0x3B00</td></tr><tr><td>R6</td><td>0x03</td><td>patrones de sprite en 0x1800</td></tr><tr><td>R7</td><td>0xE1</td><td>tinta 14 sobre fondo 1</td></tr></table>
+<p>En SCREEN 2 la pantalla está partida en <b>tres tercios</b> de ocho filas, y cada tercio tiene sus propios 256 patrones y sus propios colores. Time Pilot carga los tres <b>iguales</b>: sube el primero y luego lo copia dos veces con <code>COPIA_VRAM_A_VRAM</code> (0x4C97), que va leyendo y escribiendo byte a byte con 0x800 de salto. Como al llegar al segundo tercio ya está escrito, la copia se propaga sola al tercero.</p>
+<p>El área de juego son las 24 primeras columnas y las 24 filas; el marcador va en la fila de arriba y en la columna 24 en adelante.</p>
+<h2 id="los-caracteres">Los caracteres</h2>
+<p><img src="../imagenes/letras.png" alt="Los caracteres del título y del menú"></p>
+<p>Los caracteres se suben con una lista de bloques (0x4BF8): dos bytes con la dirección de VRAM, uno con cuántos vienen y los datos detrás. El título y el menú están escritos con los caracteres 0xC3 en adelante, y la fuente del juego —las letras y las cifras— con los 0xDC en adelante.</p>
+<p>Lo curioso es que <b>son los mismos bytes</b>: 0x798B se sube dos veces, una como final del bloque del menú y otra como principio de la fuente (0x427A), y con las cifras de 0x79D3 pasa lo mismo (0x45E9). En SCREEN 2 el color va por carácter, así que tener el mismo dibujo con dos números es lo que permite el mismo alfabeto en dos colores sin ocupar el doble.</p>
+<h2 id="los-sprites">Los sprites</h2>
+<p>La tabla de atributos son 32 sprites, y la copia de trabajo vive en RAM (0xE380): la interrupción la sube entera a la VRAM en cada fotograma (0x40CA). Al empezar cada época, siete grupos de tres bytes (cuántos, patrón, color) reparten los 21 sprites que hacen falta —el avión, los enemigos, los disparos y los rótulos— y los dejan todos fuera de la pantalla, en Y = 0xD1.</p>
+<p>El avión es el único que cambia de dibujo: sus dieciséis patrones están en 0x6F2B y solo el que toca sube a la VRAM.</p>
+<h2 id="el-sonido">El sonido</h2>
+<p>Tres canales de ocho bytes en 0xE020, 0xE028 y 0xE030, y un reproductor (0x4160) que le da un paso a cada uno en cada fotograma. Un programa de sonido es una tira de notas de <b>tres bytes</b>: el periodo fino, el periodo grueso con el volumen en el nibble de arriba y el bit 3 para el ruido, y la duración. Con el bit 7 de la duración puesto, la nota se va apagando sola escalón a escalón. Un 0xFF termina el programa.</p>
+<p>Un canal está callado cuando el byte alto de su puntero vale cero, y para callarlo de golpe basta con apuntarlo a un 0xFF: eso es justo lo que hace 0x5C8F con el que cierra el programa de 0x7E40.</p>
+<h2 id="el-mapa-de-la-ram">El mapa de la RAM</h2>
+<table><tr><th>dirección</th><th>qué guarda</th></tr><tr><td>0xE000/0xE001</td><td>modo de juego y jugador que juega</td></tr><tr><td>0xE002/0xE003</td><td>vidas de cada jugador</td></tr><tr><td>0xE005/0xE006</td><td>próximo escalón de vida extra</td></tr><tr><td>0xE00B-0xE013</td><td>puntos de los dos jugadores y el récord, en BCD</td></tr><tr><td>0xE019</td><td>el contador de fotogramas del que tira todo</td></tr><tr><td>0xE01F</td><td>la fase del reparto de la interrupción (0-5)</td></tr><tr><td>0xE020-0xE037</td><td>los tres canales de sonido</td></tr><tr><td>0xE120-0xE122</td><td>la dirección del avión, la que pide el mando y la cuenta del giro</td></tr><tr><td>0xE180-0xE183</td><td>la época y la ronda de cada jugador</td></tr><tr><td>0xE200-0xE20F</td><td>el bicho grande</td></tr><tr><td>0xE210-0xE22F</td><td>las nueve nubes</td></tr><tr><td>0xE230-0xE24F</td><td>los ocho disparos, cuatro bytes cada uno</td></tr><tr><td>0xE260-0xE2CF</td><td>los enemigos de la época y el pasajero</td></tr><tr><td>0xE2D0-0xE2FF</td><td>las siete fichas de enemigo</td></tr><tr><td>0xE380-0xE3FF</td><td>la copia en RAM de la tabla de sprites</td></tr><tr><td>0xE400-0xE4A0</td><td>el taller donde se desplazan los caracteres</td></tr></table>
+<h2 id="de-que-esta-hecho">De qué está hecho</h2>
+<table><tr><th></th><th>bytes</th><th></th></tr><tr><td>código</td><td>8911</td><td>54,4 %</td></tr><tr><td>datos</td><td>7473</td><td>45,6 %</td></tr><tr><td>sin identificar</td><td><b>0</b></td><td></td></tr></table>
+<p>Los datos, por dentro: <b>1.405</b> bytes son los quince programas de sonido, que se llevan casi todo el final del cartucho; <b>1.267</b> los decorados de las cinco épocas y de la pantalla de título; <b>926</b> los caracteres propios de cada época; <b>828</b> los del título, el menú y la fuente; <b>713</b> los patrones de sprite comunes; y <b>512</b> los dieciséis dibujos del avión. El resto —unos 1.800— son tablas: los años, los rectángulos de choque, las dieciséis direcciones, las listas de rótulos de la pantalla y las ocho tablas de despacho.</p>
+<footer><p><em>Time Pilot</em> lo publico Konami para MSX; su numero de catalogo es RC-703 y el propio cartucho firma <b>&copy;KONAMI 1983</b>, dos veces y con su propia fuente: bajo el titulo y al pie del marcador. No hay creditos ni iniciales en ninguna parte del binario. Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion.</p></footer></div>

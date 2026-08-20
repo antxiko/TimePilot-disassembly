@@ -1,0 +1,1078 @@
+# Anotaciones de Time Pilot (Konami, MSX1, cartucho RC-703).
+#
+# Cada linea va anclada a una direccion, asi que los comentarios sobreviven a
+# un retrazado. Directivas: L=etiqueta, C=comentario de linea, B=cabecera de
+# bloque, D=rango de datos, F=anchura de las filas de un bloque de datos. Todo
+# sale de leer el codigo que lo usa. Sin acentos a proposito.
+#
+# EL MAPA DE MEMORIA. Cartucho de 16 KB en la pagina 1 (0x4000-0x7FFF); la RAM
+# del juego de 0xE000 a 0xE7FF y la pila en 0xE7FF. INIT (0x4203) instala la
+# interrupcion en el gancho H.KEYI y a partir de ahi el programa principal y la
+# interrupcion se reparten el trabajo: el principal lleva la partida (marcador,
+# vidas, cambio de fase) y la interrupcion mueve todo lo que se ve.
+#
+# LA VRAM. SCREEN 2 con los tres tercios cargados iguales: nombres en 0x3800,
+# patrones en 0x2000, color en 0x0000, atributos de sprite en 0x3B00 y patrones
+# de sprite en 0x1800 (16x16). Los ocho registros salen de 0x4D05.
+# En el listado las direcciones de VRAM aparecen con el bit 14 puesto (0x4000)
+# cuando se va a escribir: 0x7800 es la tabla de nombres, 0x5800 los patrones
+# de sprite, 0x6340 el color, etc.
+#
+# LO QUE VA EN LA TABLA DE NOMBRES, no en sprites: **los disparos**. Cada uno de
+# los ocho es un caracter que se mueve por la tabla de nombres (0xE230, fichas
+# de 4 bytes), y antes de escribirse lee lo que hay en la casilla para no pisar
+# el decorado. Las nubes del fondo tambien son caracteres (0xE212).
+#
+# EL MAPA DE LA RAM
+#   E000 modo de juego (0 = un jugador, 1 = dos)   E001 jugador que juega (0/1)
+#   E002/E003 vidas de cada jugador                E004 se acabo la vida
+#   E005/E006 proximo escalon de vida extra, por jugador (BCD, en decenas de
+#        millar: arranca en 1 y sube de 5 en 5, o sea 10000 y luego cada 50000)
+#   E007 se juega con teclado (1) o con joystick (0)
+#   E008/E009 mandos: los de antes y los de ahora
+#   E00A cuantos desplazamientos de caracter pide el rotador de 0x4BA4
+#   E00B-E00D puntos del jugador 1 (3 bytes BCD, el mas alto primero)
+#   E00E-E010 puntos del jugador 2      E011-E013 el record
+#   E014 esta corriendo la demo         E015 hay partida en marcha
+#   E016 cuenta atras del parpadeo del 1UP/2UP    E018 espera en fotogramas
+#   E019 contador de fotogramas (la interrupcion lo sube)
+#   E01F fase del reparto de trabajo de la interrupcion (0..5)
+#   E020-E027 canal de sonido 1        E028-E02F canal 2
+#   E030-E037 canal 3                  (ver el bloque de 0x4160)
+#   E038 tecla pulsada en la pantalla de titulo
+#   E039/E03A direccion de VRAM del marcador que se dibuja solo
+#   E03B-E03E la animacion del rotulo del titulo
+#   E040/E041 el escalon de vida extra ya dado, por jugador
+#   E042/E043 enemigos que faltan por derribar, por jugador
+#   E044 aviso de que ha cambiado el numero de enemigos que faltan
+#   E050 el jugador ha muerto           E051 cuenta atras de la fase
+#   E052 se ha acabado la partida
+#   E0A4/E0B2/E0B4/E0BC punteros de trabajo del movedor de actores (0x521B)
+#   E100-E103 el estado de las nubes y del fondo que se desplaza
+#   E108 contador del desplazamiento del fondo
+#   E110-E127 el jugador: E120 direccion actual (0..15), E121 la que pide el
+#        mando, E122 cuenta de giro, E124/E126 apanos del fin de vida
+#   E130/E131 cuenta atras de la demo
+#   E140 cuenta de disparos seguidos    E145 estado del jugador (0x80 vivo,
+#        0xA0 y 0xC0 los dos pasos de la explosion)   E146 ha muerto
+#   E180/E181 la epoca de cada jugador (1..5)
+#   E182/E183 la ronda de cada jugador, en BCD
+#   E1A0 aviso de que hay que repintar el marcador de enemigos
+#   E200-E20F el avion del jugador        E210-E22F las nubes
+#   E230-E24F LOS OCHO DISPAROS, 4 bytes cada uno: direccion de VRAM (H y L),
+#        direccion de vuelo (0..15) y el caracter que lo dibuja
+#   E260-E29F y E2A0-E2CD los enemigos    E2CE/E2CF el jefe
+#   E2D0-E2FF los siete actores que mueve 0x521B
+#   E380-E3FF la copia en RAM de la tabla de atributos de sprite (0x60 bytes,
+#        que la interrupcion sube entera a 0x3B00 en cada fotograma)
+#   E400-E4A0 el taller del rotador de caracteres (0x4B81)
+
+# =============================================================================
+# LOS BLOQUES DE DATOS
+# =============================================================================
+
+D 0x4000 0x4012 cabecera_del_cartucho La cabecera que lee la BIOS: "AB", INIT=0x4203 y a cero STATEMENT, DEVICE y TEXT. Con la cabecera en 0x4000 la BIOS mapea el cartucho en la PAGINA 1 y salta a INIT al acabar de arrancar
+F 0x4000 2,w4,8
+D 0x4118 0x4124 reparto_de_la_interrupcion Las seis entradas del despachador de 0x40A3: que le toca hacer a la interrupcion en cada uno de los seis fotogramas del ciclo (0xE01F). Las fases 1, 3 y 5 repiten la misma rutina, asi que lo que se hace tres veces de cada seis es mover a los enemigos
+F 0x4118 w1
+D 0x415F 0x4160 relleno_ret Un `ret` suelto detras del `jp (hl)` de 0x415E, al que no llega nadie
+D 0x4C91 0x4C97 pasos_del_rotulo Los seis retardos de la animacion del rotulo de la pantalla de titulo (0xE03B), elegidos por 0xE03D
+F 0x4C91 6
+D 0x4CDD 0x4CE9 psg_al_arrancar Doce bytes en parejas (registro del PSG, valor) que escribe 0x4CCF: mezcla, ruido, los tres volumenes a cero y otra vez la mezcla
+F 0x4CDD w1
+D 0x4CE9 0x4D05 nubes_iniciales Los 28 bytes que 0x4691 copia a 0xE210: la direccion de las nubes y las nueve casillas de la tabla de nombres por las que empiezan
+F 0x4CE9 4
+D 0x4D05 0x4D0D registros_del_vdp Los ocho registros que escribe 0x4233: R0=02 (SCREEN 2), R1=E2 (16K, pantalla e interrupcion encendidas, sprites de 16x16), R2=0E (nombres en 0x3800), R3=7F y R4=07 (color en 0x0000 y patrones en 0x2000), R5=76 (atributos de sprite en 0x3B00), R6=03 (patrones de sprite en 0x1800), R7=E1 (tinta 14 sobre fondo 1)
+F 0x4D05 8
+D 0x52B9 0x52D9 movimiento_por_direccion Las dieciseis rutinas de 0x52D9 en adelante, una por direccion de vuelo: cada una suma o resta las dos componentes de la velocidad a la posicion, en BCD. Destino del despachador de 0x529F
+F 0x52B9 w1
+D 0x545B 0x546B mando_a_direccion El nibble del joystick pasado a direccion de vuelo (0..15, 0 arriba y 4 a la derecha). 0xFF quiere decir que esa combinacion no gira. La lee 0x53BB, y ademas 0x546B la usa como ruido para el mando de la demo
+F 0x545B 16
+D 0x54F6 0x5516 disparo_al_nacer Dieciseis parejas (desplazamiento sobre la casilla del avion, caracter) que 0x548E usa para poner el disparo que sale, una por direccion
+F 0x54F6 w1
+D 0x554F 0x5570 vuelo_del_disparo El `ret` de 0x554F y, detras, las dieciseis rutinas que mueven un disparo, una por direccion (destino del despachador de 0x553D). Cada una calcula la casilla siguiente de la tabla de nombres y el caracter que toca
+F 0x554F w1
+D 0x5A7C 0x5A8C tabla_5a7c Ocho rutinas, destino del despachador de 0x5A42
+F 0x5A7C w1
+D 0x59FA 0x5A0A tabla_59fa Ocho rutinas, destino del despachador de 0x59A8
+F 0x59FA w1
+D 0x5FE3 0x5FF3 tabla_5fe3 Ocho rutinas, destino del despachador de 0x5C3F
+F 0x5FE3 w1
+D 0x605C 0x606C tabla_605c Ocho rutinas, destino del despachador de 0x6070
+F 0x605C w1
+D 0x6697 0x66A7 tabla_6697 Ocho rutinas, destino del despachador de 0x6690
+F 0x6697 w1
+
+# =============================================================================
+# LAS RUTINAS DE SERVICIO
+# =============================================================================
+
+B 0x4012 LAS RUTINAS DE SERVICIO. Lo que usa todo el cartucho: sumar a HL, poner la direccion del VDP y volcar o rellenar por el puerto de datos.
+L 0x4012 SUMA_A_HL HL = HL + A, con el acarreo puesto en H
+L 0x4017 PON_DIRECCION_VDP Manda DE por el puerto 0x99: la direccion de VRAM y el modo (bit 14 puesto = escribir)
+L 0x401E COPIA_A_VRAM Pone la direccion DE y sube B bytes desde (HL)
+L 0x4021 COPIA_A_VRAM_YA El bucle, con la direccion ya puesta
+L 0x4028 RELLENA_VRAM Pone la direccion DE y escribe B veces el byte C
+L 0x402B RELLENA_VRAM_YA Con la direccion ya puesta; el byte va en C
+L 0x402C RELLENA_VRAM_CON_A Igual, pero el byte ya esta en A
+L 0x4032 LEE_JUGADOR Deja en A el jugador que esta jugando (0xE001) y pone Z si es el primero
+L 0x4037 INTERRUPCION El gancho H.KEYI. Mueve todo lo que se ve, un paso por fotograma
+L 0x403D INTERRUPCION_PASO
+L 0x4063 INTERRUPCION_TECLADO_PSG
+L 0x406A INTERRUPCION_LEE_MANDOS
+L 0x4076 INTERRUPCION_MIRA_DISPARO
+L 0x4083 INTERRUPCION_MANDO_LISTO
+L 0x4086 INTERRUPCION_SIN_MANDO
+L 0x4088 INTERRUPCION_GUARDA_MANDO
+L 0x4094 INTERRUPCION_MANDO_REPETIDO
+L 0x4098 INTERRUPCION_FASE
+L 0x40A2 INTERRUPCION_DESPACHA Reparte el trabajo entre los seis fotogramas del ciclo
+L 0x40CA INTERRUPCION_SPRITES Sube los 0x60 bytes de 0xE380 a la tabla de atributos de sprite
+L 0x40F0 INTERRUPCION_CONTADORES Sube el contador de fotogramas y baja las cuentas atras
+L 0x4105 INTERRUPCION_CUENTA
+L 0x410B INTERRUPCION_SALIDA Si ha llegado otra interrupcion mientras tanto, da otro paso antes de salir
+L 0x4124 FOTOGRAMA_0 Disparos, nubes, el avion del jugador y los choques
+L 0x4134 FOTOGRAMA_IMPAR Lo que se hace tres fotogramas de cada seis: los enemigos
+L 0x4147 FOTOGRAMA_2 El desplazamiento del fondo
+L 0x4151 FOTOGRAMA_4
+
+B 0x4160 EL REPRODUCTOR DE SONIDO. Un canal por llamada, con la ficha de 8 bytes en HL-1. El programa se guarda en el propio cartucho como una tira de notas de tres bytes: periodo bajo, periodo alto con el volumen en el nibble de arriba y el bit 3 para el ruido, y duracion. Con la duracion negativa la nota se va apagando sola.
+L 0x4160 PASO_DE_CANAL Un paso del canal cuya ficha empieza en HL-1
+L 0x417E CANAL_BAJA_VOLUMEN Un escalon menos de volumen, y a esperar
+L 0x418D CANAL_NOTA_NUEVA Lee del programa la nota que toca
+L 0x41B6 CANAL_PON_VOLUMEN
+L 0x41D8 CANAL_GUARDA_PUNTERO
+L 0x41DF CANAL_SIGUE
+L 0x41E1 CANAL_FIN Se acabo el programa: se calla el canal y se enciende el ruido
+L 0x41F0 ESCRIBE_VOLUMEN Registro 8+canal del PSG = B
+L 0x41F9 CANAL_MIRA_ESCALON
+
+B 0x4203 INIT. Lo llama la BIOS al arrancar, con el cartucho ya mapeado en la pagina 1. Engancha la interrupcion, borra la RAM, pone la pila, carga los caracteres y se mete en la pantalla de titulo.
+L 0x4203 INIT
+L 0x423A INIT_REGISTROS_VDP
+L 0x4244 PANTALLA_DE_TITULO Borra la VRAM y monta la pantalla de titulo
+L 0x424B BORRA_VRAM
+L 0x429B COPIA_DOS_TIRAS
+L 0x42B8 PINTA_MARCO
+L 0x42F0 TITULO_ESPERA Espera un fotograma y mira si tocan una tecla
+L 0x4340 TITULO_SIGUIENTE_RENGLON
+L 0x4348 TITULO_MENU El menu: uno o dos jugadores
+L 0x434D TITULO_MENU_ESPERA
+L 0x436A TITULO_DEMO Arranca la demo, que juega sola
+L 0x438E ELIGE_MODO Con la tecla pulsada decide uno o dos jugadores, y con teclado o joystick
+L 0x43B6 MODO_UN_JUGADOR
+L 0x43B9 MODO_DOS_JUGADORES
+L 0x43BB PREPARA_PARTIDA
+L 0x43CC PINTA_ROTULOS_BUCLE
+L 0x43CD ESPERA_FOTOGRAMA
+L 0x43F2 ROTULO_BORRA
+L 0x43FC MUSICA_DE_ARRANQUE Los tres canales con los tres programas de 0x7A83, 0x7ADB y 0x7B33
+L 0x4439 EMPIEZA_PARTIDA Vidas, epoca 1, ronda 1 y el marcador a cero
+L 0x4455 BORRA_ESTADO_DEL_JUGADOR
+L 0x4468 EMPIEZA_EPOCA Monta la pantalla de la epoca que toca
+L 0x4486 EPOCA_UN_JUGADOR
+L 0x449D EPOCA_BORRA_PANTALLA
+L 0x44A3 EMPIEZA_VIDA Coloca el avion, borra los actores y carga los graficos de la epoca
+L 0x44D2 VIDA_ESPERA
+L 0x450D BORRA_TRES_TERCIOS
+L 0x451D BORRA_TRES_TERCIOS_2
+L 0x4542 CARGA_NUBES
+L 0x4568 EPOCA_2
+L 0x4582 EPOCA_3
+L 0x459D EPOCA_4
+L 0x45B8 EPOCA_5
+L 0x45C2 EPOCA_5_BUCLE
+L 0x45E9 CARGA_MARCADOR Los caracteres del marcador y la fila de arriba
+L 0x4620 PINTA_FONDO_DE_LA_EPOCA
+L 0x4665 MONTA_SPRITES_DE_LA_EPOCA
+L 0x466A MONTA_SPRITES_GRUPO
+L 0x466D MONTA_SPRITES_UNO
+L 0x46CC CUENTA_ENEMIGOS_QUE_FALTAN
+L 0x46D3 GUARDA_ENEMIGOS_QUE_FALTAN
+L 0x46D7 PINTA_VIDAS Los aviones que quedan, en la fila de abajo
+L 0x46F3 PINTA_VIDAS_BUCLE
+L 0x46FE PASO_DE_LA_PARTIDA El bucle exterior: lo que el programa principal hace mientras se juega
+L 0x4708 PARTIDA_MIRA_MARCADOR
+L 0x4730 PARTIDA_DESCUENTA
+L 0x4739 PINTA_ENEMIGOS_QUE_FALTAN
+L 0x4740 PINTA_ENEMIGOS_BORRA
+L 0x475B PINTA_ENEMIGOS_MARCAS
+L 0x4762 PINTA_ENEMIGOS_MARCA
+L 0x4776 MIRA_RECORD Si los puntos pasan del record, el record cambia
+L 0x4781 MIRA_RECORD_RESTA
+L 0x4787 MIRA_RECORD_BUCLE
+L 0x4796 PINTA_RECORD
+L 0x47BC MIRA_SI_HA_MUERTO
+L 0x47CF MUERTE_DEL_JUGADOR
+L 0x47DE PREPARA_VIDA_NUEVA
+L 0x4803 VIDA_ESPERA_FOTOGRAMA
+L 0x4839 CAMBIA_DE_EPOCA
+L 0x4856 BAJA_LA_CUENTA
+L 0x4857 PASO_DEL_ROTULO
+L 0x486B MIRA_FIN_DE_FASE
+L 0x4874 FASE_ESPERA
+L 0x4880 FASE_SIGUIENTE La ronda sube, y con ella la epoca y los enemigos que hacen falta
+L 0x48A5 CUANTOS_ENEMIGOS
+L 0x48BB CUANTOS_ENEMIGOS_BUCLE Cinco enemigos mas cada cinco rondas, hasta cincuenta
+L 0x48D1 GUARDA_CUANTOS_ENEMIGOS
+L 0x48F0 MIRA_VIDA_EXTRA A los 10000 puntos y luego cada 50000
+L 0x48FE VIDA_EXTRA_COMPARA
+L 0x4926 MIRA_TECLA_DE_ARRANQUE
+L 0x4946 FIN_DE_LA_VIDA
+L 0x4955 BORRA_MARCADOR_DEL_JUGADOR
+L 0x4971 CAMBIA_DE_JUGADOR
+L 0x49AD OTRO_JUGADOR_EMPIEZA
+L 0x49BF OTRO_JUGADOR_ROTULO
+L 0x49C8 OTRO_JUGADOR_BORRA
+L 0x49E5 FIN_DE_PARTIDA
+L 0x4A12 FIN_DE_PARTIDA_ROTULO
+L 0x4A23 BORRA_MARCADORES
+L 0x4A28 BORRA_MARCADORES_BUCLE
+L 0x4A3B LEE_JOYSTICK Registro 14 del PSG por el puerto 0xA2
+L 0x4A43 LEE_FILA_DEL_TECLADO Deja en A la fila A de la matriz del teclado
+L 0x4A4C LEE_TECLAS_DE_DIRECCION La fila 8 (cursores y espacio), pasada por la tabla de 0x4E54
+L 0x4A62 PINTA_LA_PANTALLA_FIJA Los cinco rotulos de 0x4EAB
+L 0x4A6A PINTA_ROTULO_SIGUIENTE
+L 0x4A72 ESCRIBE_ROTULO El formato: una palabra con la direccion de VRAM, los caracteres, 0xFE para repetir uno, 0xFF para terminar el renglon y otro 0xFF para terminar la lista
+L 0x4A78 ESCRIBE_ROTULO_BUCLE
+L 0x4A87 ESCRIBE_ROTULO_MIRA_FIN
+L 0x4A8F ESCRIBE_ROTULO_SIGUIENTE
+L 0x4A97 PINTA_SEIS_CIFRAS Tres bytes BCD en seis caracteres, sumandole 0xE5 a cada cifra
+L 0x4A9C PINTA_CIFRA
+L 0x4AB3 SIGUIENTE_JUGADOR Cambia de jugador y devuelve carry si al nuevo le quedan vidas
+L 0x4AC5 PARPADEA_EL_JUGADOR Enciende y apaga el rotulo del jugador que juega, cada 0x40 fotogramas
+L 0x4AD8 PARPADEO_ENCIENDE
+L 0x4AE2 PARPADEO_APAGA
+L 0x4AE3 PARPADEO_ESCRIBE
+L 0x4AEF PARPADEO_SUBE
+L 0x4AF5 SUMA_PUNTOS Suma BC en BCD a los puntos del jugador que juega
+L 0x4B04 SUMA_PUNTOS_YA
+L 0x4B15 BORRA_LA_FILA_DE_ARRIBA
+L 0x4B1E BORRA_FILA_BUCLE
+L 0x4B27 BORRA_EL_AREA_DE_JUEGO Las 24 filas de 24 columnas
+L 0x4B29 BORRA_AREA_CON_C
+L 0x4B2E BORRA_AREA_FILA
+L 0x4B3E CHOCAN Compara las posiciones DE y BC con el rectangulo que dice la tabla de 0x4E64; devuelve carry si se tocan
+L 0x4B5F CHOCAN_SI
+L 0x4B61 CHOCAN_NO
+L 0x4B63 CHOCAN_GRANDE
+L 0x4B71 CHOCAN_GRANDE_Y
+L 0x4B7B CHOCAN_GRANDE_Y2
+L 0x4B81 SUBE_CARACTERES_GIRADOS Sube a la VRAM un juego de caracteres y, detras, sus copias desplazadas lateralmente; con eso el fondo se mueve de dos en dos o de cuatro en cuatro pixeles sin tocar la tabla de nombres
+L 0x4B94 COPIA_AL_TALLER
+L 0x4B97 COPIA_AL_TALLER_BUCLE
+L 0x4BA4 DESPLAZA_LOS_CARACTERES
+L 0x4BAD DESPLAZA_UNA_VUELTA
+L 0x4BB1 DESPLAZA_CARACTER
+L 0x4BB3 DESPLAZA_BYTE
+L 0x4BC0 DESPLAZA_BITS
+L 0x4BE7 BORRA_EL_TALLER
+L 0x4BED SUBE_EL_TALLER
+L 0x4BF8 CARGA_LISTA_DE_BLOQUES C bloques seguidos de (direccion de VRAM, cuantos, datos)
+L 0x4C05 PASO_DEL_ROTULO_DEL_TITULO Mueve el rotulo que se desliza en la pantalla de titulo
+L 0x4C17 ROTULO_PASO_2
+L 0x4C22 ROTULO_PASO_3
+L 0x4C2D ROTULO_PASO_4
+L 0x4C35 ROTULO_GUARDA
+L 0x4C4D ROTULO_CUENTA
+L 0x4C53 ROTULO_SALTA_LINEA
+L 0x4C69 ROTULO_VUELVE
+L 0x4C78 ROTULO_RESTA
+L 0x4C7D ROTULO_PINTA_DOS
+L 0x4C97 COPIA_VRAM_A_VRAM Copia 0xFFF bytes de la VRAM a otro sitio de la VRAM, byte a byte: asi los tres tercios de la pantalla quedan cargados iguales
+L 0x4C9A COPIA_VRAM_BUCLE
+L 0x4CB0 ESPERA_A_FOTOGRAMAS Deja A en 0xE018 y espera a que la interrupcion lo baje a cero
+L 0x4CB4 ESPERA_BUCLE
+L 0x4CB9 APAGA_LOS_SPRITES Manda los 32 sprites fuera de la pantalla (Y = 0xD1)
+L 0x4CC4 LEE_EPOCA Deja en A la epoca del jugador que juega (0xE180/0xE181)
+L 0x4CC7 LEE_POR_JUGADOR Deja en A el byte de (HL + jugador), y deja HL apuntandolo
+L 0x4CCF ESCRIBE_PSG B parejas (registro, valor) desde 0x4CDD
+L 0x4CD2 ESCRIBE_PSG_BUCLE
+L 0x4D0D PINTA_BLOQUE_DE_FONDO Un dibujo del fondo, en filas de tramos repetidos: cuantas filas, y por fila cuantos tramos de (cuantos, caracter)
+L 0x4D11 PINTA_BLOQUE_FILA
+L 0x4D14 PINTA_BLOQUE_TRAMO
+
+B 0x4FE9 EL FONDO QUE SE MUEVE. Las nueve nubes son caracteres de la tabla de nombres, no sprites: cada fotograma se borran, se les suma el desplazamiento que toca a la direccion de vuelo y se vuelven a pintar. Al llegar al borde dan la vuelta.
+L 0x4FE9 PASO_DEL_FONDO
+L 0x5000 FONDO_CUENTA
+L 0x5015 FONDO_LEE_VELOCIDAD
+L 0x502D FONDO_REDONDEA
+L 0x5032 FONDO_DIRECCION
+L 0x5043 FONDO_MUEVE_AL_JUGADOR
+L 0x505E FONDO_LEE_TABLA
+L 0x5076 FONDO_SUMA
+L 0x5082 FONDO_MUEVE_LAS_NUBES
+L 0x50A1 NUBES_GUARDA
+L 0x50A9 NUBE_SIGUIENTE
+L 0x50BC NUBE_BORDE_DERECHO
+L 0x50C6 NUBE_PON_L
+L 0x50C7 NUBE_MIRA_FILA
+L 0x50CF NUBE_ARRIBA
+L 0x50D6 NUBE_GUARDA
+L 0x50ED NUBE_INDICE
+L 0x50F4 NUBE_PATRONES
+L 0x5103 PINTA_LAS_NUBES
+L 0x510D PINTA_NUBE
+L 0x5120 PINTA_NUBE_FILAS
+L 0x5124 PINTA_NUBE_FILA
+L 0x5129 PINTA_NUBE_PONE
+L 0x512C PINTA_NUBE_BYTE
+L 0x5140 PINTA_NUBE_SIGUE
+L 0x5142 PINTA_NUBE_BAJA
+L 0x514F PINTA_NUBE_CUENTA
+L 0x5164 FONDO_ACELERA
+L 0x516E FONDO_GIRA
+
+B 0x521B MUEVE A TODO EL MUNDO. Recorre las fichas de los actores -el jefe, los enemigos y los disparos enemigos- y a cada uno le suma su velocidad en la direccion en la que vuela.
+L 0x521B PASO_DE_LOS_ACTORES
+L 0x5238 ACTORES_GRUPO_1
+L 0x5265 ACTORES_GRUPO_2
+L 0x5267 ACTORES_GRUPO_2_UNO
+L 0x5279 ACTORES_GRUPO_2_SIGUIENTE
+L 0x528B ACTORES_GRUPO_3
+L 0x5297 MUEVE_UN_ACTOR Si la ficha esta viva, salta a la rutina de su direccion
+L 0x52B0 ACTOR_LIBRE
+L 0x536D SUMA_Y_ALTA Suma la componente alta de la velocidad, en BCD, y acarrea a la casilla
+L 0x5378 SUMA_Y_BAJA
+L 0x5383 RESTA_Y_ALTA
+L 0x538E RESTA_Y_BAJA
+
+B 0x5399 EL AVION DEL JUGADOR. Time Pilot no gira de golpe: el mando dice a que direccion se quiere ir, y el avion va girando un paso cada vez hasta llegar. Cada direccion tiene sus 32 bytes de patron de sprite, que se suben a la VRAM en cuanto cambia.
+L 0x5399 PASO_DEL_JUGADOR
+L 0x53B1 JUGADOR_MIRA_MANDO
+L 0x53D2 JUGADOR_GIRA_MAS
+L 0x53D6 JUGADOR_MIRA_VUELTA
+L 0x53DA JUGADOR_GIRA_MENOS
+L 0x53DE JUGADOR_CARGA_SPRITE
+L 0x53FC JUGADOR_GUARDA_GIRO
+L 0x53FE JUGADOR_PON_SPRITE
+L 0x5414 JUGADOR_EXPLOTA
+L 0x541B JUGADOR_EXPLOTA_2
+L 0x5426 JUGADOR_CAE
+L 0x542D JUGADOR_CAE_2
+L 0x5442 JUGADOR_ESPERA_A_REVIVIR
+L 0x5449 JUGADOR_REVIVE
+L 0x546B MANDO_DE_LA_DEMO Cuando juega la demo, el "mando" sale de leer el propio codigo del cartucho: el registro R elige un byte a partir de 0x5399 y eso es lo que se toma por joystick
+L 0x5480 DISPARA Saca un disparo por la casilla que le toca a la direccion de vuelo
+L 0x54A0 DISPARA_BUSCA_HUECO
+L 0x54AB DISPARA_PON
+L 0x54C6 DISPARA_SUENA
+L 0x54D7 MIRA_EL_BOTON Con la demo dispara siempre; con mando, hasta cuatro seguidos
+L 0x54EC MIRA_BOTON_SI
+L 0x54F2 MIRA_BOTON_NO
+L 0x5516 MUEVE_LOS_DISPAROS Los ocho, uno a uno: borra la casilla y salta a la rutina de su direccion
+L 0x551B MUEVE_DISPARO
+L 0x5539 MUEVE_DISPARO_DESPACHA
+L 0x5546 MUEVE_DISPARO_SIGUIENTE
+L 0x554E SALTA_A_HL El `jp (hl)` que usan los despachadores
+L 0x5570 DISPARO_ARRIBA
+L 0x5574 DISPARO_MIRA_FILA
+L 0x5579 DISPARO_PON_CARACTER
+L 0x557B DISPARO_ESCRIBE Antes de pintar mira lo que hay en la casilla: si no es fondo, el disparo no se dibuja
+L 0x558F DISPARO_GUARDA
+L 0x5599 DISPARO_APAGA
+L 0x559D DISPARO_1
+L 0x55A7 DISPARO_1_FILA
+L 0x55B0 DISPARO_2
+L 0x55B3 DISPARO_2_SUMA
+L 0x55B6 DISPARO_3
+L 0x55C1 DISPARO_4
+L 0x55C2 DISPARO_4_COLUMNA
+L 0x55CE DISPARO_5
+L 0x55E3 DISPARO_6
+L 0x55EC DISPARO_6_PON
+L 0x55F0 DISPARO_7
+L 0x55FC DISPARO_8
+L 0x5600 DISPARO_8_FILA
+L 0x560A DISPARO_9
+L 0x5617 DISPARO_9_COLUMNA
+L 0x562A DISPARO_10
+L 0x562D DISPARO_10_SUMA
+L 0x5630 DISPARO_11
+L 0x563C DISPARO_12
+L 0x563D DISPARO_12_COLUMNA
+L 0x564B DISPARO_13
+L 0x5656 DISPARO_13_PON
+L 0x565B DISPARO_14
+L 0x5669 DISPARO_15
+
+# =============================================================================
+# LOS BLOQUES DE DATOS (segunda tanda)
+# =============================================================================
+
+D 0x4D2F 0x4D39 fondo_del_titulo Cinco parejas (cuantos, caracter) que 0x42AD escribe seguidas en la VRAM 0x0468: el fondo de la pantalla de titulo
+F 0x4D2F 2
+D 0x4D39 0x4D61 fondo_epoca_1 La lista de la epoca 1 para 0x4620: parejas (cuantos, caracter), y un 0xFF hace que 0x4D0D pinte un bloque entero. Doce vueltas. Los bytes de 0x4D3D los vuelve a leer 0x481C como la pareja con la que se borra la pantalla al cambiar de epoca
+D 0x4D61 0x4D82 fondo_epoca_2 Igual para la epoca 2, trece vueltas; 0x4D65 es la pareja de borrado
+D 0x4D82 0x4DAD fondo_epoca_3 Igual para la epoca 3, once vueltas; 0x4D86 es la pareja de borrado
+D 0x4DAD 0x4DD3 fondo_epoca_4 Igual para la epoca 4, doce vueltas; 0x4DB1 es la pareja de borrado
+D 0x4DD3 0x4DEB fondo_epoca_5 Igual para la epoca 5; 0x4DD7 es la pareja de borrado
+D 0x4DEB 0x4E00 sprites_epoca_1 Siete grupos de tres bytes (cuantos, patron, color) que 0x4665 reparte por la tabla de sprites de 0xE380. Son 21 sprites: el jugador, los enemigos, los disparos y los rotulos
+F 0x4DEB 3
+D 0x4E00 0x4E15 sprites_epoca_2 Igual para la epoca 2
+F 0x4E00 3
+D 0x4E15 0x4E2A sprites_epoca_3 Igual para la epoca 3
+F 0x4E15 3
+D 0x4E2A 0x4E3F sprites_epoca_4 Igual para la epoca 4
+F 0x4E2A 3
+D 0x4E3F 0x4E54 sprites_epoca_5 Igual para la epoca 5
+F 0x4E3F 3
+D 0x4E54 0x4E64 teclas_a_joystick Los dieciseis valores con los que 0x4A4C convierte el nibble de la fila 8 del teclado -los cursores- en los mismos bits que da el joystick
+F 0x4E54 16
+D 0x4E64 0x4E7C rectangulos_de_choque Seis rectangulos de cuatro bytes (Y minima, Y maxima, X minima, X maxima) que usa 0x4B3E: cada clase de choque tiene el suyo
+F 0x4E64 4
+D 0x4E7C 0x4E90 anos_de_las_epocas Los cinco anos que se pintan en el marcador, cuatro caracteres cada uno: 1910, 1940, 1970, 1984 y 2001. Los escribe 0x44A3 en la VRAM 0x395A
+F 0x4E7C 4
+D 0x4E90 0x4EAB rotulo_del_titulo Para 0x4A72: los dos renglones del dibujo grande de TIME PILOT, hechos con los caracteres 0x8D a 0xBF
+D 0x4EAB 0x4EE8 pantalla_fija Para 0x4A72: lo que sale en la pantalla de titulo y no cambia -el dibujo grande, el copyright de KONAMI y el 1983-, en cuatro renglones
+D 0x4EE8 0x4F05 menu_opcion_1 Para 0x4A72: el primer renglon del menu. Lleva el 1, dos caracteres de letra pequena, 1PLAYER, otros dos de letra pequena y JOYSTICK
+D 0x4F05 0x4F22 menu_opcion_2 El segundo renglon: 2PLAYERS con JOYSTICK
+D 0x4F22 0x4F3F menu_opcion_3 El tercero: 1PLAYER con KEYBOARD
+D 0x4F3F 0x4F5C menu_opcion_4 El cuarto: 2PLAYERS con KEYBOARD
+D 0x4F5C 0x4F68 rotulo_jugador_1 Para 0x4A72: "PLAYER 1" en el centro de la pantalla. 0x442D entra en 0x4F5D, un byte mas alla, para escribirlo en otro sitio
+D 0x4F68 0x4F74 rotulo_jugador_2 Igual con "PLAYER 2"
+D 0x4F74 0x4FA3 rotulo_fin_de_partida Para 0x4A72: cuatro renglones con "PLAYER 1" y "GAME OVER" y las lineas en blanco de alrededor
+D 0x4FA3 0x4FE9 marcador Para 0x4A72: el marcador entero -HI, 1P, 2P con sus seis ceros, el ano de la epoca, PLAYER y el copyright-. Los dos caracteres de 0x4FB0 ("1P") y los de 0x4FBB ("2P") se vuelven a leer sueltos para encender y apagar el rotulo del jugador que juega
+D 0x5197 0x51D7 desplazamiento_de_las_nubes Cuatro grupos de ocho parejas (caracter, desplazamiento con signo sobre la tabla de nombres): con eso las nubes se mueven en la direccion en la que vuela el avion. Lo lee 0x5056
+F 0x5197 16
+D 0x51D7 0x5217 desplazamiento_de_las_nubes_2 El segundo juego, el que se usa cuando el bit 2 del estado dice que el fondo va mas deprisa (0x505B)
+F 0x51D7 16
+D 0x5217 0x521B velocidad_del_fondo Los cuatro retardos del desplazamiento del fondo, elegidos por 0xE103 en 0x5017
+F 0x5217 4
+D 0x5786 0x5796 pasos_del_jefe Ocho parejas que 0x56B0 usa para el bicho grande de 0xE200: el caracter con el que se dibuja y si avanza una casilla
+F 0x5786 2
+D 0x5807 0x5897 caida Setenta y dos parejas (avance en Y, avance en X) que 0x57DE recorre paso a paso: la trayectoria de lo que cae. Empieza casi horizontal y acaba en ocho de caida por paso
+F 0x5807 16
+D 0x5C13 0x5C19 enemigos_de_refuerzo Dos grupos de tres bytes (caracter, patron de sprite, color) para los dos enemigos que 0x5BAE suelta de la epoca 3 en adelante
+F 0x5C13 3
+D 0x6012 0x6013 ret_suelto Un byte 0xC9 al que no llega nadie, entre el ultimo movimiento de 0x600D y la rutina de 0x6013
+D 0x62E2 0x63A2 tabla_62e2 192 bytes de tablas del comportamiento de los enemigos, en el hueco entre 0x62E2 y 0x63A2
+D 0x688A 0x689C velocidades_al_nacer Parejas de velocidad (Y, X) para el enemigo que sale; el registro R elige una de las dos de cada entrada (0x6592)
+F 0x688A 4
+D 0x689C 0x68DC tabla_689c Sesenta y cuatro bytes que lee 0x6629 para colocar al enemigo que nace
+D 0x68DC 0x68E5 formacion_1 Nueve bytes con la formacion en la que salen los enemigos (0x665E)
+F 0x68DC 9
+D 0x68E5 0x68EE formacion_2 La segunda formacion (0x6664)
+F 0x68E5 9
+D 0x68EE 0x68F7 formacion_3 La tercera formacion (0x666A)
+F 0x68EE 9
+D 0x68F7 0x6900 formacion_4 La cuarta formacion (0x6670)
+F 0x68F7 9
+D 0x6900 0x6909 formacion_5 La quinta formacion (0x6676)
+F 0x6900 9
+D 0x6909 0x6921 tabla_6909 Veinticuatro bytes que leen 0x5D4A y 0x5EC7 al mirar los choques
+D 0x6921 0x6981 nubes_por_direccion Cuatro juegos de 24 caracteres: el dibujo de la nube segun por donde se vuela. Lo lee 0x50E6
+F 0x6921 24
+D 0x6981 0x69C5 nubes_patrones El segundo juego de la nube, en grupos de 16 (0x50F8)
+F 0x6981 16
+D 0x69C5 0x6A85 el_bicho_grande Los fotogramas del bicho grande que sale al final de la epoca, 24 caracteres cada uno (6 de ancho por 4 de alto), que 0x56FF pinta en la tabla de nombres
+F 0x69C5 24
+D 0x6A85 0x6AD0 caracteres_del_marcador Un bloque para 0x4BF8: 72 bytes a la VRAM 0x2008, o sea los caracteres del marco del marcador
+D 0x6AD0 0x6AD8 nube_titulo_1 Ocho bytes (un caracter) para la nube de la pantalla de titulo, epocas 1 y 2 (0x452C)
+D 0x6AD8 0x6AE0 nube_titulo_2 Igual, epoca 3
+D 0x6AE0 0x6AE8 nube_titulo_3 Igual, epoca 4
+D 0x6AE8 0x6AF0 nube_titulo_4 Igual, epoca 5
+D 0x6AF0 0x6AF8 caracter_de_borrado Los ocho bytes del caracter con el que se borra el area de juego (0x44E4)
+D 0x6AF8 0x6BF2 nubes_del_titulo Diez bloques para 0x4B81 -cinco de cuatro caracteres y cinco de dos- con el 0x11 de cierre detras de cada uno: las nubes que se mueven en la pantalla de titulo, y sus copias desplazadas
+D 0x6BF2 0x6C97 nubes_epoca_1 Cinco bloques de cuatro caracteres, con su 0x11 de cierre: las nubes de la epoca 1, que 0x4B81 sube a la VRAM junto con sus copias desplazadas lateralmente
+D 0x6C97 0x6D3C nubes_epoca_2 Igual para la epoca 2
+D 0x6D3C 0x6DE1 nubes_epoca_3 Igual para la epoca 3
+D 0x6DE1 0x6E86 nubes_epoca_4 Igual para la epoca 4
+D 0x6E86 0x6F2B nubes_epoca_5 Igual para la epoca 5. INIT (0x4295) coge ademas los dos primeros bloques -0x6E86 y 0x6EA7- y los sube alternando de ocho en ocho bytes
+D 0x6F2B 0x712B avion_del_jugador Los dieciseis dibujos del avion, uno por direccion de vuelo, de 32 bytes cada uno (un sprite de 16x16). 0x53E3 sube a la VRAM el que toque en cuanto el avion gira, asi que en la VRAM solo hay uno
+F 0x6F2B 32
+D 0x712B 0x7394 sprites_comunes Tres bloques para 0x4BF8: 192 bytes a la VRAM 0x1840, 256 a 0x1A00 y 160 a 0x1B00. Son los patrones de sprite que valen para todas las epocas
+D 0x7394 0x73B4 explosion Los dibujos de la explosion, 32 bytes (0x59CA)
+F 0x7394 32
+D 0x73B4 0x73D4 sprite_73b4 Un sprite de 16x16 que leen 0x59E2 y 0x59E7
+F 0x73B4 32
+D 0x73D4 0x73F4 sprite_73d4 Otro sprite de 16x16 (0x59F3)
+F 0x73D4 32
+D 0x73F4 0x74F4 caracteres_epoca_1 256 bytes a la VRAM 0x1900: los patrones de sprite propios de la epoca 1 (0x4548)
+D 0x74F4 0x75F2 caracteres_epoca_2 Los de la epoca 2 (0x456B). Los dos ultimos bytes los comparte con el bloque siguiente
+D 0x75F2 0x7652 caracteres_epoca_3 96 bytes de la epoca 3 (0x4585)
+D 0x7652 0x7752 caracteres_epoca_4 256 bytes de la epoca 4 (0x45A0)
+D 0x7752 0x7772 caracteres_epoca_5 La primera mitad de la epoca 5: 0x45BB la sube ocho veces seguidas, de 32 en 32 bytes
+D 0x7772 0x7792 caracteres_epoca_5b La segunda mitad, que 0x45D5 sube igual a la VRAM 0x1A00
+D 0x7792 0x798B caracteres_del_texto Tres bloques para 0x4BF8: 152 bytes a la VRAM 0x2468, 256 a 0x2500 y el principio de los 200 de 0x2618. Son los caracteres con los que estan escritos el titulo y el menu
+D 0x798B 0x79D3 letras El final del bloque anterior y, a la vez, el principio de la fuente: 0x427A sube 248 bytes desde aqui a la VRAM 0x26E0, o sea los caracteres 0xDC a 0xFA. Los mismos bytes valen para dos juegos de caracteres distintos, que es como el cartucho tiene las mismas letras en dos colores sin guardarlas dos veces
+D 0x79D3 0x7A83 cifras Las diez cifras y los ultimos simbolos de la fuente. 0x45E9 sube ademas estos 80 primeros bytes a la VRAM 0x2638, asi que las cifras estan en la VRAM dos veces, con dos numeros de caracter y dos colores
+D 0x7A83 0x7ADB musica_1 El programa del canal 1 de la musica de arranque (0x43FD): notas de tres bytes -periodo bajo, periodo alto con el volumen en el nibble de arriba, y duracion- y 0xFF al final
+F 0x7A83 3
+D 0x7ADB 0x7B33 musica_2 El canal 2 de la misma musica
+F 0x7ADB 3
+D 0x7B33 0x7B94 musica_3 El canal 3 de la misma musica
+F 0x7B33 3
+D 0x7B94 0x7D57 musica_de_epoca El programa que suena al cambiar de epoca (0x484A)
+F 0x7B94 3
+D 0x7D57 0x7D88 sonido_7d57 El sonido que piden 0x48E7, 0x5C95 y 0x5FBF
+F 0x7D57 3
+D 0x7D88 0x7DB6 sonido_del_bicho_grande El sonido continuo del bicho grande (0x56A2)
+F 0x7D88 3
+D 0x7DB6 0x7DC3 sonido_7db6 El sonido que pide 0x58F1
+F 0x7DB6 3
+D 0x7DC3 0x7E0C sonido_7dc3 El sonido que pide 0x5FB3
+F 0x7DC3 3
+D 0x7E0C 0x7E40 sonido_7e0c El sonido que pide 0x5FB9
+F 0x7E0C 3
+D 0x7E40 0x7E4D sonido_7e40 El sonido que pide 0x4BF0. Su 0xFF de cierre, en 0x7E4C, se usa ademas como programa vacio: 0x5C8F apunta el canal 2 ahi para callarlo de golpe
+F 0x7E40 3
+D 0x7E4D 0x7E69 sonido_7e4d El sonido que pide 0x5E53
+F 0x7E4D 3
+D 0x7E69 0x7E7F sonido_del_disparo El sonido que pide 0x54CB cada vez que sale un disparo
+F 0x7E69 3
+D 0x7E7F 0x7E98 sonido_de_vida_extra El sonido que pide 0x4903 al dar una vida
+F 0x7E7F 3
+D 0x7E98 0x7EBD sonido_7e98 El sonido que pide 0x6579
+F 0x7E98 3
+D 0x7EBD 0x7EE0 sonido_7ebd El sonido que pide 0x6401
+F 0x7EBD 3
+D 0x7EE0 0x7EED sonido_7ee0 El sonido que pide 0x6484
+F 0x7EE0 3
+D 0x7EED 0x8000 sonido_7eed El ultimo programa de sonido, el que pide 0x5D04, y lo que queda hasta el final del cartucho
+F 0x7EED 3
+
+# =============================================================================
+# LO QUE FALTABA POR BAUTIZAR
+# =============================================================================
+
+L 0x415E SALTA_A_HL_2 Un `jp (hl)` suelto que hace de "call (hl)": el despachador de 0x40A3 entra aqui
+L 0x431C TITULO_RESTA
+L 0x47B7 PINTA_PUNTOS_DEL_JUGADOR
+L 0x48AF CUANTOS_ENEMIGOS_PREPARA
+L 0x4B6D CHOCAN_GRANDE_X
+
+B 0x511D EL BORRADO Y EL PINTADO DE LAS NUBES.
+L 0x511D PINTA_NUBE_SIN_DESPLAZAR
+L 0x518B FONDO_GIRA_YA
+L 0x5191 FONDO_GUARDA_ESTADO
+L 0x5233 ACTORES_PRIMER_GRUPO
+
+B 0x52D9 LAS DIECISEIS DIRECCIONES DE VUELO. Una rutina por direccion, todas iguales por dentro: sumar o restar a la posicion las dos componentes de la velocidad, la de arriba y la de al lado, en BCD y con acarreo a la casilla siguiente. Time Pilot no tiene angulos: tiene dieciseis.
+L 0x52D9 VUELA_0 Arriba del todo
+L 0x52E0 VUELA_1
+L 0x52EA VUELA_2
+L 0x52F4 VUELA_3
+L 0x52FE VUELA_4 A la derecha del todo
+L 0x5305 VUELA_5
+L 0x530F VUELA_6
+L 0x5319 VUELA_7
+L 0x5323 VUELA_8 Abajo del todo
+L 0x532A VUELA_9
+L 0x5334 VUELA_10
+L 0x533E VUELA_11
+L 0x5348 VUELA_12 A la izquierda del todo
+L 0x534F VUELA_13
+L 0x5359 VUELA_14
+L 0x5363 VUELA_15
+
+B 0x5679 EL BICHO GRANDE. Al final de la epoca sale un bicho enorme -seis caracteres de ancho por cuatro de alto- que no es un sprite: se pinta en la tabla de nombres, casilla a casilla, y por eso hay que borrarlo antes de moverlo.
+L 0x5679 PASO_DEL_BICHO_GRANDE
+L 0x5691 BICHO_GRANDE_SUENA
+L 0x56A0 BICHO_GRANDE_PIDE_SONIDO
+L 0x56A8 BICHO_GRANDE_MUEVE
+L 0x56BF BICHO_GRANDE_GUARDA
+L 0x56C4 BICHO_GRANDE_PINTA Borra el dibujo de antes y lo vuelve a poner en la casilla nueva
+L 0x56E7 BICHO_GRANDE_SE_VA Al salirse por el borde, la fase se da por acabada
+L 0x56F3 BICHO_GRANDE_MARCA
+L 0x56FE BICHO_GRANDE_DIBUJO
+L 0x5706 BICHO_GRANDE_INDICE
+L 0x570D PINTA_BLOQUE_EN_NOMBRES Pinta C filas de seis caracteres en la tabla de nombres, saltandose lo que caiga fuera del area de juego
+L 0x570F PINTA_BLOQUE_FILA_2
+L 0x5712 PINTA_BLOQUE_CASILLA
+L 0x5728 PINTA_BLOQUE_SIGUIENTE
+L 0x5736 PINTA_BLOQUE_FUERA
+L 0x5738 PINTA_BLOQUE_BAJA
+L 0x573F PINTA_BLOQUE_CUENTA
+L 0x574B PINTA_BLOQUE_VUELTA
+L 0x5752 PINTA_BLOQUE_AJUSTA
+L 0x5762 PINTA_BLOQUE_SALTA
+L 0x5769 PINTA_BLOQUE_SALTA_2
+L 0x5774 PINTA_BLOQUE_FIN
+
+B 0x5796 LOS ACTORES QUE CAEN. Seis fichas en 0xE270 que van bajando por la trayectoria de 0x5807.
+L 0x5796 PASO_DE_LOS_QUE_CAEN
+L 0x579E PASO_DEL_QUE_CAE
+L 0x57AE QUE_CAE_SIGUIENTE
+L 0x57B4 PASO_DE_LOS_DE_LA_EPOCA_1 Las cuatro fichas de 0xE260, que solo se usan en la epoca 1
+L 0x57BC PASO_DEL_DE_LA_EPOCA_1
+L 0x57D2 EPOCA_1_MUERE
+L 0x57D9 EPOCA_1_MUEVE Recorre la trayectoria de 0x5807, paso a paso
+L 0x57F1 EPOCA_1_GUARDA
+L 0x57F9 EPOCA_1_SIGUIENTE
+
+B 0x5897 EL PASAJERO. La ficha de 0xE2CE baja sola y parpadea entre dos caracteres cada 64 fotogramas.
+L 0x5897 PASO_DEL_PASAJERO
+L 0x58B9 PASAJERO_PARPADEA
+
+B 0x58BC LOS ENEMIGOS DE LA EPOCA. Cuatro fichas en 0xE2A0 con su propia rutina: nacen, van hacia el centro de la pantalla -que es donde esta siempre el avion del jugador- y al morir dejan la explosion.
+L 0x58BC PASO_DE_LOS_ENEMIGOS
+L 0x58C4 PASO_DE_UN_ENEMIGO
+L 0x58D9 ENEMIGO_APAGA
+L 0x58DE ENEMIGO_SIGUIENTE_FICHA
+L 0x58E3 ENEMIGO_VIVO
+L 0x58FC ENEMIGO_MIRA_CUENTA
+L 0x590D ENEMIGO_SIGUE_IGUAL
+L 0x5911 ENEMIGO_APUNTA_AL_CENTRO
+L 0x5921 ENEMIGO_PON_SPRITE
+L 0x5935 ENEMIGO_DISPARA
+L 0x5947 ENEMIGO_CAMBIA_FOTOGRAMA
+L 0x594E ENEMIGO_MUEVE
+L 0x5957 ENEMIGO_SIGUIENTE
+L 0x5961 LEE_PALABRA_DE_TABLA HL = la palabra numero A de la tabla que hay en HL; es la primera mitad de todos los despachadores
+L 0x596A SUMA_4_A_HL
+L 0x596E SUMA_7_A_HL
+L 0x5972 SUMA_9_A_HL
+L 0x5976 SUMA_10_A_HL
+L 0x597A SUMA_32_A_HL Una fila entera de la tabla de nombres
+L 0x597C SUMA_A_HL_SALTO
+L 0x597F BORRA_AL_BICHO_GRANDE
+L 0x59C1 BICHO_GRANDE_BORRA_FILA
+L 0x59C3 BICHO_GRANDE_BORRA_CASILLA
+L 0x59E7 SPRITE_DE_LA_EXPLOSION_2
+L 0x59F6 SPRITE_DEL_HUMO
+
+B 0x5A0A LAS OCHO DIRECCIONES DE LOS SPRITES. Los actores que van por sprite no usan las dieciseis direcciones del avion, sino ocho, y se mueven de dos o de cuatro pixeles por paso.
+L 0x5A0A SPRITE_DERECHA_4
+L 0x5A0E SPRITE_QUIETO
+L 0x5A0F SPRITE_ARRIBA_4
+L 0x5A14 SPRITE_ABAJO_4
+L 0x5A1A SPRITE_ARRIBA_2
+L 0x5A1F SPRITE_ARRIBA_2_DERECHA
+L 0x5A24 SPRITE_ABAJO_2
+L 0x5A29 SPRITE_ABAJO_2_DERECHA
+L 0x5A2E CUENTA_ATRAS_DEL_QUE_CAE
+L 0x5A33 CUENTA_ATRAS_PASO
+L 0x5A41 MUEVE_SPRITE Mueve la posicion (Y, X) de DE en la direccion C, con paso B
+L 0x5A4D APAGA_SI_SE_SALE Si el sprite se ha ido de la pantalla, lo manda a Y=0xD1 y libera la ficha
+L 0x5A5C APAGA_SPRITE
+L 0x5A75 APAGA_DESCUENTA
+L 0x5A77 SIGUIENTE_SPRITE
+L 0x5A8C MUEVE_ARRIBA
+L 0x5A91 MUEVE_ARRIBA_DERECHA
+L 0x5A94 MUEVE_DERECHA
+L 0x5A98 MUEVE_DERECHA_SOLO
+L 0x5A9B MUEVE_ABAJO_DERECHA
+L 0x5AA1 MUEVE_ABAJO
+L 0x5AA6 MUEVE_ABAJO_IZQUIERDA
+L 0x5AA9 MUEVE_IZQUIERDA
+L 0x5AAD MUEVE_IZQUIERDA_SOLO
+L 0x5AB0 MUEVE_ARRIBA_IZQUIERDA
+L 0x5AB5 DIRECCION_AL_CENTRO Deja en A la direccion (0..7) que va de la posicion DE al centro de la pantalla, que es donde vuela siempre el avion del jugador
+L 0x5ACE AL_CENTRO_ARRIBA
+L 0x5ADE AL_CENTRO_DIAGONAL
+L 0x5AE2 AL_CENTRO_DERECHA
+L 0x5AF6 AL_CENTRO_ABAJO
+L 0x5B0D AL_CENTRO_IZQUIERDA
+L 0x5B1B AL_CENTRO_AFINA
+L 0x5B2B AL_CENTRO_ABAJO_DERECHA
+L 0x5B2D AL_CENTRO_SALIDA
+L 0x5B30 VECTOR_AL_CENTRO Calcula el paso (Y, X) que lleva de la posicion DE al centro, dividiendo la distancia mayor entre la menor
+L 0x5B45 VECTOR_RESTA_X
+L 0x5B4F VECTOR_ORDENA
+L 0x5B5F VECTOR_Y_MANDA
+L 0x5B65 VECTOR_GUARDA
+L 0x5B73 PON_DISPARO_ENEMIGO Deja la ficha con el paso que lleva al centro y el tiempo de vuelo
+L 0x5B7F DISPARO_ENEMIGO_GUARDA
+L 0x5B88 DIVIDE Divide H entre L por restas y deja el cociente en A
+L 0x5B96 DIVIDE_BUCLE
+L 0x5BA9 DIVIDE_FIN
+L 0x5BAE SUELTA_REFUERZOS De la epoca 3 en adelante, cada 8 pasos suelta dos enemigos mas
+L 0x5BCE REFUERZO_BUSCA_HUECO
+L 0x5BD2 REFUERZO_SIGUIENTE
+L 0x5BDB REFUERZO_PON
+L 0x5C08 REFUERZO_OTRO
+
+B 0x5C19 LOS CHOQUES. Cada uno de los ocho disparos se pasa a coordenadas de pixel -la casilla de la tabla de nombres por ocho- y se cruza con los enemigos, con el pasajero y con el bicho grande. El bicho grande aguanta 24 impactos.
+L 0x5C19 MIRA_LOS_CHOQUES
+L 0x5C1E CHOQUES_DE_UN_DISPARO
+L 0x5C52 CHOQUE_CON_ACTOR
+L 0x5C78 ACTOR_TOCADO Cincuenta puntos y la explosion
+L 0x5C8F ACTOR_TOCADO_SONIDO
+L 0x5CA6 CHOQUE_ACTOR_SIGUIENTE
+L 0x5CE9 CHOQUE_CON_EL_BICHO_GRANDE
+L 0x5D2D BICHO_GRANDE_MUERE
+L 0x5D45 BICHO_GRANDE_EXPLOTA
+L 0x5D60 CHOQUE_CON_LOS_DE_LA_EPOCA
+L 0x5D6E CHOQUE_EPOCA_1
+L 0x5D7D CHOQUE_EPOCA_1_SIGUIENTE
+L 0x5D8B CHOQUE_EPOCA_3
+L 0x5D9B CHOQUE_EPOCA_3_BUCLE
+L 0x5DAA ENEMIGO_TOCADO Quinientos puntos
+L 0x5DBF ENEMIGO_TOCADO_PUNTOS
+L 0x5DCA CHOQUE_EPOCA_3_SIGUIENTE
+L 0x5DD6 CHOQUE_FIN
+L 0x5DD7 CHOQUE_DISPARO_SIGUIENTE
+L 0x5DE1 MATA_A_TODOS Al morir el bicho grande se lleva por delante a todo lo que hay en pantalla
+L 0x5DE9 MATA_A_TODOS_BUCLE
+L 0x5E08 MATA_A_TODOS_SIGUIENTE
+L 0x5E19 APAGA_LOS_DEMAS_SPRITES
+L 0x5E21 CHOQUE_CON_EL_PASAJERO Recogerlo son quinientos puntos
+L 0x5E51 PASAJERO_SONIDO
+L 0x5E5A CHOQUE_DEL_JUGADOR Mira si el avion del jugador toca algo
+L 0x5EA7 CHOQUE_JUGADOR_SIGUIENTE
+L 0x5EBF CHOQUE_JUGADOR_MUERE
+L 0x5ED7 CHOQUE_JUGADOR_FIN
+L 0x5ED8 CHOQUE_CON_LOS_DISPAROS
+L 0x5EE0 CHOQUE_DISPARO_ENEMIGO
+L 0x5F03 CHOQUE_DISPARO_SIGUE
+L 0x5F10 CHOQUE_CON_LOS_QUE_CAEN
+L 0x5F18 CHOQUE_QUE_CAE
+L 0x5F2C CHOQUE_QUE_CAE_SIGUIENTE
+L 0x5F40 CHOQUE_CON_EL_PASAJERO_2
+L 0x5F57 CHOQUE_PASAJERO_2
+L 0x5F6A CHOQUE_PASAJERO_SIGUE
+L 0x5F81 CHOQUE_CON_LOS_REFUERZOS
+L 0x5F8E CHOQUE_REFUERZO
+L 0x5F9B CHOQUE_REFUERZO_SIGUE
+L 0x5FB3 MUERE_EL_JUGADOR Sonido, explosion y el estado 0xC0
+L 0x5FD1 MIRA_SI_LA_FICHA_ESTA_VIVA Devuelve carry y la posicion si la ficha de DE esta en juego
+L 0x5FE1 FICHA_LIBRE
+
+B 0x5FF3 LOS OCHO PASOS DEL DISPARO ENEMIGO. Destino del despachador de 0x5C3F: cada uno suma tres o seis pixeles a la posicion, en una direccion.
+L 0x5FF3 PASO_ARRIBA_3
+L 0x5FF7 PASO_QUIETO
+L 0x5FF8 PASO_ARRIBA_6
+L 0x5FFD PASO_ARRIBA_6_DERECHA_3
+L 0x6000 PASO_DERECHA_3
+L 0x6005 PASO_ARRIBA_6_DERECHA_6
+L 0x6008 PASO_DERECHA_6
+L 0x600D PASO_ARRIBA_3_DERECHA_6
+
+B 0x6013 EL PASO DE LOS SIETE ACTORES. Recorre las siete fichas de 0xE2D0 y le da a cada una el paso de su comportamiento, que sale de la tabla de 0x605C.
+L 0x6013 PASO_DE_LOS_ACTORES_2
+L 0x601B PASO_DE_UN_ACTOR
+L 0x6033 ACTOR_ARRANCA
+L 0x6042 ACTOR_CUENTA
+L 0x6047 ACTOR_BAJA_CUENTA
+L 0x604B ACTOR_MIRA_TIEMPO
+L 0x6050 ACTOR_BAJA_TIEMPO
+L 0x6053 ACTOR_REARMA
+L 0x606C ACTOR_DESPACHA
+L 0x6079 ACTOR_SIGUIENTE
+
+B 0x6087 LOS OCHO COMPORTAMIENTOS. Cada actor lleva en su ficha cual de estos ocho le toca; todos acaban llamando al mismo movedor, lo que cambia es como eligen la direccion y cada cuanto la cambian.
+L 0x6087 COMPORTAMIENTO_1 Cambia de rumbo al azar cuando se le acaba la cuenta
+L 0x609A COMPORTAMIENTO_1_RUMBO
+L 0x60BA COMPORTAMIENTO_1_MUEVE
+L 0x60C5 COMPORTAMIENTO_2 Apunta al centro de la pantalla cada vez que se le acaba la cuenta
+L 0x60D9 COMPORTAMIENTO_2_MUEVE
+L 0x60DA COMPORTAMIENTO_2_PASO
+L 0x60F4 COMPORTAMIENTO_2_LANZA
+L 0x60F8 COMPORTAMIENTO_3 Espera, apunta al centro y dispara
+L 0x610A COMPORTAMIENTO_3_APUNTA
+L 0x6128 COMPORTAMIENTO_3_SIGUE
+L 0x612C COMPORTAMIENTO_4
+L 0x613E COMPORTAMIENTO_4_ESPERA
+L 0x6142 COMPORTAMIENTO_4_APUNTA
+L 0x6149 COMPORTAMIENTO_4_GIRA
+L 0x6152 COMPORTAMIENTO_4_MUEVE
+L 0x6164 COMPORTAMIENTO_4_DISPARA
+L 0x617B COMPORTAMIENTO_4_FIN
+L 0x6186 COMPORTAMIENTO_5
+L 0x619D COMPORTAMIENTO_5_PASO
+L 0x61A1 COMPORTAMIENTO_5_MUEVE
+L 0x61A9 COMPORTAMIENTO_5_FIN
+L 0x61B2 COMPORTAMIENTO_6
+L 0x61C9 COMPORTAMIENTO_6_PASO
+L 0x61CF COMPORTAMIENTO_6_MUEVE
+L 0x61E9 COMPORTAMIENTO_6_FIN
+L 0x61F1 COMPORTAMIENTO_7
+L 0x6217 COMPORTAMIENTO_7_PASO
+L 0x6228 COMPORTAMIENTO_7_GIRA
+L 0x6234 COMPORTAMIENTO_7_CUENTA
+L 0x623B COMPORTAMIENTO_7_RUMBO
+L 0x6247 COMPORTAMIENTO_7_SIGUE
+L 0x624B COMPORTAMIENTO_7_MIRA
+L 0x625F COMPORTAMIENTO_7_MAS
+L 0x6263 COMPORTAMIENTO_7_MENOS
+L 0x626D COMPORTAMIENTO_7_AJUSTA
+L 0x6277 COMPORTAMIENTO_7_TOPE
+L 0x627B COMPORTAMIENTO_7_PON
+L 0x6288 COMPORTAMIENTO_7_SONIDO
+L 0x628D COMPORTAMIENTO_7_FIN
+L 0x628F COMPORTAMIENTO_7_MUEVE
+L 0x6293 COMPORTAMIENTO_7_PASO2
+L 0x6296 COMPORTAMIENTO_7_SALIDA
+L 0x629C COMPORTAMIENTO_8
+L 0x62B6 COMPORTAMIENTO_8_PASO
+L 0x62D2 COMPORTAMIENTO_8_MUEVE
+L 0x62D4 COMPORTAMIENTO_8_FIN
+
+B 0x63A2 EL SPRITE QUE LE TOCA A CADA ACTOR. Con la direccion en la que va y el fotograma de la animacion, saca el patron y el color del sprite.
+L 0x63A2 PON_SPRITE_DEL_ACTOR
+L 0x63BB SPRITE_ACTOR_SIGUIENTE
+L 0x63CB SPRITE_ACTOR_TABLA
+L 0x63F0 SPRITE_ACTOR_COLOR
+L 0x63FF SPRITE_ACTOR_FIN
+L 0x6407 SPRITE_ACTOR_2
+L 0x640A SPRITE_ACTOR_3
+L 0x6425 SPRITE_ACTOR_4
+L 0x6433 SPRITE_ACTOR_5
+L 0x6445 SPRITE_ACTOR_6
+L 0x6453 SPRITE_ACTOR_7
+L 0x6463 SPRITE_ACTOR_8
+L 0x6492 SUELTA_ACTORES Decide si toca sacar un actor nuevo y por donde entra
+L 0x649F SUELTA_MIRA_HUECO
+L 0x64A6 SUELTA_SIGUIENTE_FICHA
+L 0x64AF SUELTA_PON
+L 0x64C4 SUELTA_COLOCA
+L 0x64DB SUELTA_ARRANCA
+L 0x64E6 SUELTA_FIN
+L 0x64F5 SUELTA_CUENTA
+L 0x650A SUELTA_SALIDA
+L 0x650E PASO_DE_LA_FASE Lleva la cuenta de los enemigos que faltan y, cuando no queda ninguno, saca el bicho grande
+L 0x6522 FASE_CUENTA
+L 0x6540 FASE_SUELTA_BICHO
+L 0x6553 FASE_BICHO_LISTO
+L 0x6577 FASE_SONIDO
+L 0x657F FASE_SIGUE
+L 0x659F FASE_VELOCIDAD
+L 0x65A7 FASE_MIRA_EPOCA
+L 0x65E1 FASE_EPOCA_5
+L 0x65F5 FASE_ESPERA_2
+L 0x6603 FASE_PON_CUENTA
+L 0x660F FASE_CUENTA_2
+L 0x6612 FASE_PASO_2
+L 0x6618 FASE_MIRA_HUECO
+L 0x6626 FASE_HUECO_LIBRE
+L 0x6640 FASE_COLOCA
+L 0x6642 FASE_COLOCA_2
+L 0x6655 FASE_FORMACION
+L 0x6657 FASE_FORMACION_2
+L 0x665B FASE_ELIGE_FORMACION
+L 0x6679 FASE_FORMACION_PON
+L 0x6680 FASE_FORMACION_SIGUE
+L 0x6688 FASE_FORMACION_FIN
+L 0x668E FASE_SALIDA
+
+B 0x66A7 LOS OCHO ARRANQUES. Destino del despachador de 0x6690: por donde entra en pantalla cada clase de actor y con que velocidad.
+L 0x66A7 ARRANQUE_1
+L 0x66BD ARRANQUE_2
+L 0x66CC ARRANQUE_3
+L 0x66F9 ARRANQUE_4
+L 0x670D ARRANQUE_5
+L 0x6721 ARRANQUE_6
+L 0x6730 ARRANQUE_6_PASO
+L 0x673B ARRANQUE_6_PON
+L 0x6749 ARRANQUE_6_FIN
+L 0x674B ARRANQUE_7
+L 0x675A ARRANQUE_7_PASO
+L 0x6763 ARRANQUE_7_PON
+L 0x6773 ARRANQUE_8
+L 0x677D ARRANQUE_8_PASO
+L 0x6785 ARRANQUE_8_PON
+L 0x678E ARRANQUE_COMUN
+L 0x67B8 ARRANQUE_FIN
+L 0x67BA ARRANQUE_TABLA
+L 0x67E0 ARRANQUE_TABLA_2
+L 0x67FF ARRANQUE_TABLA_3
+L 0x6801 ARRANQUE_POSICION
+L 0x680C ARRANQUE_POSICION_2
+L 0x6812 ARRANQUE_POSICION_3
+L 0x681E ARRANQUE_POSICION_4
+L 0x682A ARRANQUE_POSICION_5
+L 0x6836 ARRANQUE_POSICION_6
+L 0x683E ARRANQUE_POSICION_7
+L 0x6847 ARRANQUE_POSICION_8
+L 0x6855 ARRANQUE_VELOCIDAD
+L 0x6879 ARRANQUE_VELOCIDAD_2
+L 0x6887 ARRANQUE_SALIDA
+
+# =============================================================================
+# LOS COMENTARIOS DE LINEA
+# =============================================================================
+
+C 0x4012 HL = HL + A, arrastrando el acarreo a H
+C 0x4018 el puerto 0x99 es el de la direccion y los registros del VDP
+C 0x401B con el bit 14 puesto en D, el VDP se prepara para ESCRIBIR
+C 0x4022 y el 0x98 es el de los datos
+C 0x402E el nop es para darle tiempo al VDP entre escritura y escritura
+C 0x4032 0xE001 dice cual de los dos jugadores esta jugando
+C 0x403B leer el estado del VDP baja la peticion de interrupcion
+C 0x403D 0xE050 se pone cuando el jugador se ha estrellado
+C 0x4044 0xE015 dice si hay una fase en marcha
+C 0x4050 0xE007: con joystick se lee por el PSG, con teclado por la matriz
+C 0x405B registro 15 del PSG: la seleccion de los puertos de mando
+C 0x406A sin joystick, los cursores y la barra de la fila 8 del teclado
+C 0x4089 solo interesan seis bits: cuatro direcciones y dos disparos
+C 0x408B 0xE008 guarda lo de antes y 0xE009 lo de ahora
+C 0x4098 0xE01F cuenta de 0 a 5: el ciclo de reparto de la interrupcion
+C 0x40A3 seis entradas, una por fotograma del ciclo
+C 0x40CA la tabla de sprites se sube entera de RAM a VRAM cada fotograma
+C 0x40D5 0xE014 dice si esta corriendo la demo
+C 0x40E1 los tres canales de sonido, uno detras de otro
+C 0x40F3 0xE019 es el contador de fotogramas del que tira todo el juego
+C 0x410B si mientras tanto ha llegado otra interrupcion, se da otro paso sin salir
+C 0x4124 fotograma 0 del ciclo: los disparos, las nubes y el avion
+C 0x4134 fotogramas 1, 3 y 5: los enemigos, tres veces de cada seis
+C 0x4147 fotograma 2: el fondo que se desplaza
+C 0x4151 fotograma 4: el bicho grande y la cuenta de la fase
+C 0x4160 con el byte de arriba del puntero a cero, el canal esta callado
+C 0x4164 los dos primeros bytes de la ficha son el puntero al programa
+C 0x416A el tercero es lo que le queda a la nota; con el bit 7, ademas, se apaga sola
+C 0x418D 0xFF termina el programa
+C 0x4197 registro 2n del PSG: el periodo fino del canal n
+C 0x419C y el 2n+1: los cuatro bits altos del periodo
+C 0x41A3 el bit 3 del segundo byte enciende el ruido
+C 0x41A9 registro 7: la mezcla, con el ruido puesto en el canal C
+C 0x41B8 el nibble alto del segundo byte es el volumen de arranque
+C 0x41C7 el tercer byte es la duracion de la nota
+C 0x41E6 al acabar el programa, la mezcla vuelve a dejar el ruido suelto
+C 0x41F2 registro 8+n del PSG: el volumen del canal n
+C 0x4204 se escribe `jp 0x4037` en el gancho H.KEYI de la BIOS
+C 0x420F la RAM del juego, de 0xE000 a 0xE7FE, a cero
+C 0x421B y la pila justo detras
+C 0x4229 registro 15 del PSG: los puertos de mando como salida
+C 0x4231 el puerto 0xAA es la fila del teclado que se va a leer
+C 0x4233 los ocho registros del VDP, uno detras de otro desde el 0
+C 0x4242 modo 1 de interrupcion, que es el que usa la BIOS del MSX
+C 0x4245 borrar los 16 KB de la VRAM
+C 0x427A la fuente: 248 bytes, o sea 31 caracteres, en 0xDC-0xFA
+C 0x42C5 y las tres partes de la pantalla cargadas iguales, para que un numero
+C 0x42CB de caracter valga en cualquier fila
+C 0x42EA dos segundos y pico con el titulo
+C 0x42F9 mientras se pinta el rotulo no puede entrar la interrupcion
+C 0x4301 la fila 8 del teclado: si no hay ninguna tecla, seguir esperando
+C 0x4348 al llegar abajo del todo se pasa al menu
+C 0x4373 y si nadie toca nada, arranca la demo
+C 0x438E la tecla dice el modo: uno o dos jugadores, con joystick o con teclado
+C 0x4391 0xE007 a 1 quiere decir joystick
+C 0x43A3 las opciones 3 y 4 son con el teclado
+C 0x43FD los tres canales, con los tres programas de la musica de arranque
+C 0x4439 0xE051 es la cuenta atras que lleva la fase
+C 0x443E dos vidas por jugador
+C 0x4447 la primera vida extra, a los 10000 puntos
+C 0x445C la direccion de partida del avion es la 0x19 y media... el 0x19 es hacia arriba
+C 0x4468 0xE130 es la cuenta atras de la demo
+C 0x44EF los dieciseis dibujos del avion, uno por direccion
+C 0x44FD 256 bytes de patrones de sprite comunes
+C 0x4525 la epoca decide los dibujos, el color del cielo y las nubes
+C 0x4548 la epoca 1
+C 0x4568 la epoca 2
+C 0x4582 la epoca 3
+C 0x459D la epoca 4
+C 0x45B8 la epoca 5, que necesita dos tandas de ocho bloques
+C 0x45FC y el fondo, que se pinta con listas de (cuantos, caracter)
+C 0x4665 los 21 sprites de la epoca: patron y color, y todos fuera de pantalla
+C 0x4691 las nueve nubes, a sus casillas de salida
+C 0x46AA el marcador que se dibuja solo, casilla a casilla
+C 0x46CC cuantos enemigos faltan, en grupos de cinco
+C 0x46DD los aviones que le quedan al jugador, en la fila de abajo
+C 0x4708 0xE1A0 avisa de que hay que repintar la cuenta de enemigos
+C 0x4739 los enemigos que faltan se ensenan como marcas, de cinco en cinco
+C 0x4776 si los puntos pasan del record, el record cambia
+C 0x47CF el jugador se ha estrellado
+C 0x480F 0x65 es la cuenta con la que empieza cada fase
+C 0x4839 al pasar de epoca se borra la pantalla con la pareja de la lista
+C 0x484A y suena la musica de la epoca nueva
+C 0x4880 la ronda sube de una en una, en BCD
+C 0x489D y la epoca con ella, de la 1 a la 5 y vuelta a empezar
+C 0x48B7 25 enemigos la primera ronda
+C 0x48C5 y cinco mas cada cinco rondas
+C 0x48C0 con el tope en 50
+C 0x48F0 la vida extra: se compara la cifra alta de los puntos con el escalon
+C 0x4916 y el escalon sube de cinco en cinco: 10000, 60000, 110000...
+C 0x4A3B registro 14 del PSG: el joystick, por el puerto 0xA2
+C 0x4A45 la fila del teclado se escribe dos veces por seguridad
+C 0x4A4C la fila 8: los cuatro cursores y la barra
+C 0x4A72 la primera palabra de cada renglon es la direccion de la VRAM
+C 0x4A7A 0xFE repite un caracter B veces
+C 0x4A87 0xFF acaba el renglon; otro 0xFF detras, la lista entera
+C 0x4A9E las cifras empiezan en el caracter 0xE5
+C 0x4AB3 los dos jugadores se turnan al morir
+C 0x4AC8 el rotulo del jugador que juega parpadea cada 0x40 fotogramas
+C 0x4AF5 los puntos son tres bytes BCD, el mas alto primero
+C 0x4B15 la fila de arriba, la del marcador
+C 0x4B2E el area de juego son 24 filas de 24 columnas
+C 0x4B3F cada clase de choque tiene su rectangulo en la tabla de 0x4E64
+C 0x4B81 los caracteres del fondo se suben con sus copias desplazadas
+C 0x4B9D el 0x11 cierra cada bloque de caracteres
+C 0x4BB6 0xE00A dice cuantas copias hacen falta, y de cuantos bits
+C 0x4BC0 los bits que salen por la izquierda entran en el caracter de al lado
+C 0x4C97 copiar VRAM a VRAM, byte a byte, leyendo y escribiendo
+C 0x4CB3 0xE018 lo baja la interrupcion en cada fotograma
+C 0x4CB9 la Y 0xD1 deja el sprite fuera de la pantalla
+C 0x4CC4 0xE180/0xE181: la epoca de cada jugador
+C 0x4CD4 registro y valor, por los puertos 0xA0 y 0xA1
+C 0x4D0D un dibujo del fondo: filas de tramos de (cuantos, caracter)
+
+C 0x4FE9 0xE108 cuenta los pasos del desplazamiento del fondo
+C 0x4FF0 un paso de fondo cada dieciseis fotogramas
+C 0x5017 la velocidad del fondo sale de 0xE103
+C 0x5043 el bicho grande tambien se mueve con el fondo
+C 0x5056 la tabla de desplazamientos: caracter y salto sobre la tabla de nombres
+C 0x5082 y las nueve nubes, una a una
+C 0x50B1 al llegar a la columna 24 la nube da la vuelta
+C 0x50C8 y lo mismo por arriba y por abajo, entre las filas 0x77 y 0x7B
+C 0x5103 0xE22F avisa de que hay que repintar las nubes
+C 0x512C aqui las nubes se escriben sin mirar lo que hay debajo
+
+C 0x5297 solo se mueve la ficha si su estado es 0x80, o sea viva
+C 0x529F dieciseis rutinas, una por direccion de vuelo
+C 0x536D la posicion es BCD: `daa` detras de cada suma
+C 0x5373 y el acarreo pasa a la casilla de al lado
+
+C 0x539F 0xE145 lleva el estado del avion: 0x80 volando, 0xA0 y 0xC0 explotando
+C 0x53BB el nibble del joystick, pasado a una de las dieciseis direcciones
+C 0x53C6 si ya se va por ahi, no hay nada que girar
+C 0x53CE el giro va por el lado corto: como mucho ocho pasos
+C 0x53E3 y el dibujo del avion se sube a la VRAM en cuanto cambia la direccion
+C 0x5414 la explosion son dos pasos, uno cada ocho fotogramas
+C 0x544D 0xE004 dice que se ha acabado la vida
+C 0x546B con la demo, el "joystick" sale del propio codigo del cartucho
+C 0x5476 el registro R -el de refresco de la memoria- hace de azar
+C 0x547B y el byte que salga se mete tal cual en 0xE009
+C 0x548E la casilla y el caracter con el que sale el disparo, segun la direccion
+C 0x54A0 ocho fichas de disparo; si estan todas ocupadas, no sale
+C 0x54B5 antes de pintar se lee la casilla: si no es cielo, el disparo no se dibuja
+C 0x54CB y suena el disparo
+C 0x54DD los bits 4 y 5 son los dos botones
+C 0x54E8 con el mando, cuatro disparos seguidos como mucho
+C 0x5516 los ocho disparos, uno a uno
+C 0x5525 el bit 6 quitado de D deja la direccion en modo lectura
+C 0x5535 se borra escribiendo el caracter 0x0A, que es el cielo
+C 0x553D dieciseis rutinas, una por direccion de vuelo del disparo
+C 0x557B antes de escribir, mirar: si la casilla ya no es cielo, no se pinta
+C 0x5599 y si el disparo se ha salido, se apaga
+
+C 0x56A2 el bicho grande tiene su propio sonido, con prioridad 6
+C 0x56C4 primero se borra el dibujo de antes y luego se pinta en la casilla nueva
+C 0x56E7 al salirse por el borde, la fase se da por terminada
+
+C 0x57DE la trayectoria de 0x5807, paso a paso
+C 0x57EB y el avance en X va en un sentido o en el otro segun el bit 0
+
+C 0x58AE el pasajero parpadea entre dos caracteres cada 64 fotogramas
+C 0x58E4 en la epoca 5 no suena
+C 0x5911 el enemigo apunta al centro de la pantalla, que es donde esta el avion
+C 0x592E el patron del sprite sale de la direccion, por cuatro, mas 0x40
+
+C 0x5961 la mitad de todos los despachadores: HL = tabla[A]
+C 0x5A4D si el sprite se ha ido de la pantalla, la ficha se libera
+C 0x5AB5 la direccion que va de aqui al centro de la pantalla, 0x60,0x60
+C 0x5B30 el paso que lleva al centro: la distancia mayor entre la menor
+C 0x5B88 dividir a base de restar
+
+C 0x5BAE de la epoca 3 en adelante salen dos enemigos mas
+C 0x5C19 los ocho disparos contra todo lo que hay en pantalla
+C 0x5C2A de casilla de la tabla de nombres a coordenada en pixeles
+C 0x5C7B derribar un actor son cincuenta puntos
+C 0x5CF5 el bicho grande aguanta veinticuatro impactos
+C 0x5CFD y derribarlo son quinientos puntos
+C 0x5D52 y se lleva por delante a todo lo que hay en pantalla
+C 0x5DC2 los enemigos de la epoca valen quinientos puntos
+C 0x5E3E y recoger al pasajero, otros quinientos
+C 0x5FB3 el avion del jugador se estrella
+
+C 0x6013 las siete fichas de 0xE2D0, una a una
+C 0x6070 ocho comportamientos, y cada ficha lleva el suyo
+C 0x60A2 el registro R hace de azar tambien aqui
+C 0x60C5 este apunta al centro cada vez que se le acaba la cuenta
+C 0x6116 y este dispara al llegar
+
+C 0x6492 cada cierto tiempo entra un actor nuevo
+C 0x650E la cuenta de la fase: cuando no queda ninguno, sale el bicho grande
+C 0x6592 el registro R elige una de las dos velocidades de cada entrada
+C 0x665B cinco formaciones distintas para entrar en pantalla
+C 0x6690 ocho arranques, uno por clase de actor

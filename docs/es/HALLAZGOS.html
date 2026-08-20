@@ -1,0 +1,119 @@
+<title>Hallazgos — Time Pilot</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html" style=color:var(--tinta)>Hallazgos</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../FINDINGS.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="hallazgos">Hallazgos</h1>
+<p>Lo que aparece al desmontarlo y no se ve jugando. Cada cosa con su dirección.</p>
+<h2 id="la-cuarta-epoca-es-1984-no-1982">La cuarta época es 1984, no 1982</h2>
+<p>Los cinco años que pinta el marcador están en 0x4E7C, cuatro caracteres cada uno: <b>1910, 1940, 1970, 1984 y 2001</b>. En el salón recreativo esa cuarta época es 1982, el año del original; esta conversión la cambió. El propio cartucho, en cambio, firma ©KONAMI 1983, así que el año que se ve en la pantalla de juego es posterior al que se ve en la de título.</p>
+<p><img src="../imagenes/menu.png" alt="La pantalla de título con el menú"></p>
+<h2 id="la-demo-se-pilota-leyendo-el-propio-cartucho">La demo se pilota leyendo el propio cartucho</h2>
+<p>Cuando el juego se queda solo, el &quot;joystick&quot; no sale de ningún generador de números. <code>MANDO_DE_LA_DEMO</code> (0x546B) hace esto:</p>
+<pre><code>	ld hl,05399h      ; la propia rutina del avión
+	ld a,r            ; el registro de refresco de la memoria
+	call SUMA_A_HL
+	ld a,(hl)
+	ld (0e009h),a     ; y eso es el mando</code></pre>
+<p>O sea que la demo vuela leyendo el programa que la está moviendo. Como el registro R avanza con cada instrucción, el byte que sale es distinto cada vez, y como el código no es aleatorio, el avión describe giros que parecen intencionados sin serlo.</p>
+<h2 id="los-disparos-son-caracteres-que-miran-antes-de-escribir">Los disparos son caracteres que miran antes de escribir</h2>
+<p>El MSX solo puede enseñar cuatro sprites en una línea, así que Time Pilot deja los sprites para los aviones y dibuja los ocho disparos <b>en la tabla de nombres</b>. Cada ficha son cuatro bytes en 0xE230: la casilla, la dirección de vuelo y el carácter.</p>
+<p>Antes de pintarse, cada disparo <b>lee</b> la casilla a la que va (0x557B): pone la dirección en modo lectura, mira lo que hay, y solo escribe si lo que encuentra es cielo. Con eso ni se pisan entre ellos ni tapan el decorado, y borrarse es volver a escribir el carácter del cielo.</p>
+<p>El bicho grande del final de época hace lo mismo, con seis caracteres de ancho por cuatro de alto.</p>
+<h2 id="el-avion-no-se-mueve-gira">El avión no se mueve: gira</h2>
+<p>El mando dice a cuál de las dieciséis direcciones se quiere ir (tabla de 0x545B), y el avión va girando <b>un paso cada vez</b> hasta llegar, siempre por el lado corto: si la diferencia pasa de ocho, gira al revés (0x53CE).</p>
+<p><img src="../imagenes/aviones.png" alt="Los dieciséis dibujos del avión"></p>
+<p>Cada dirección tiene sus 32 bytes de dibujo en 0x6F2B, pero en la memoria de vídeo solo hay uno: en cuanto la dirección cambia, se suben los 32 bytes que tocan al mismo sitio (0x53E3). Un sprite, dieciséis dibujos y un solo hueco.</p>
+<h2 id="la-interrupcion-reparte-el-trabajo-en-seis-fotogramas">La interrupción reparte el trabajo en seis fotogramas</h2>
+<p>0xE01F cuenta de 0 a 5 y la tabla de 0x4118 dice qué toca en cada uno: los disparos y el avión, el fondo, el bicho grande, y los enemigos tres veces de cada seis. Y al salir se vuelve a mirar el estado del VDP: si ha llegado otra interrupción mientras tanto, se da otro paso sin salir (0x410B).</p>
+<h2 id="las-mismas-letras-dos-veces-en-la-vram-y-una-en-el-cartucho">Las mismas letras, dos veces en la VRAM y una en el cartucho</h2>
+<p>Los bytes de 0x798B en adelante se suben <b>dos veces</b>: una como final del bloque de caracteres del menú (0x4272) y otra como principio de la fuente (0x427A). Con las cifras de 0x79D3 pasa igual (0x45E9).</p>
+<p><img src="../imagenes/letras.png" alt="Los caracteres del título y del menú"></p>
+<p>En SCREEN 2 el color va por carácter, así que la única manera de tener el mismo alfabeto en dos colores es tenerlo con dos números de carácter. Time Pilot lo consigue sin guardar los dibujos dos veces: sube los mismos bytes a dos sitios.</p>
+<h2 id="el-silencio-es-un-programa-de-sonido-vacio">El silencio es un programa de sonido vacío</h2>
+<p>Para callar el canal 2 de golpe, 0x5C8F no toca el PSG ni pone banderas: le apunta el puntero al <b>0xFF que cierra</b> el programa de 0x7E40. El canal lee ese 0xFF en el paso siguiente, se calla y se apaga él solo, por el camino de siempre.</p>
+<h2 id="los-caracteres-del-fondo-se-guardan-una-vez-y-se-suben-desplazados">Los caracteres del fondo se guardan una vez y se suben desplazados</h2>
+<p><code>SUBE_CARACTERES_GIRADOS</code> (0x4B81) coge un bloque de caracteres, lo sube a la VRAM y luego repite el bloque <b>desplazado dos o cuatro pixeles a la izquierda</b>, tantas veces como diga 0xE00A. Los bits que salen de un byte entran en el del carácter de al lado (0x4BC0). Así el decorado se puede mover en pasos de dos pixeles sin tocar la tabla de nombres y sin guardar más dibujos.</p>
+<h2 id="las-cuentas-del-juego">Las cuentas del juego</h2>
+<ul><li><b>Vidas</b>: dos por jugador, y una más a los 10.000 puntos y luego cada 50.000 (0x48F0). El escalón se guarda en las cifras altas de la puntuación y sube de cinco en cinco.</li><li><b>Enemigos por ronda</b>: 25 la primera, y cinco más cada cinco rondas hasta un tope de 50 (0x48A5).</li><li><b>Puntos</b>: 50 por un enemigo, 500 por uno de los propios de la época, 500 por recoger al pasajero y 500 por el bicho grande, que aguanta <b>veinticuatro impactos</b> (0x5CF5).</li><li><b>Disparos</b>: ocho a la vez como mucho, y con el mando no más de cuatro seguidos (0x54E8); la demo dispara siempre.</li></ul>
+<h2 id="un-ret-al-que-no-llega-nadie">Un <code>ret</code> al que no llega nadie</h2>
+<p>En 0x6012 hay un byte 0xC9 suelto entre el último de los pasos del disparo enemigo y la rutina de 0x6013. Ninguna instrucción del listado salta ahí y ningún puntero cae ahí.</p>
+<footer><p><em>Time Pilot</em> lo publico Konami para MSX; su numero de catalogo es RC-703 y el propio cartucho firma <b>&copy;KONAMI 1983</b>, dos veces y con su propia fuente: bajo el titulo y al pie del marcador. No hay creditos ni iniciales en ninguna parte del binario. Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion.</p></footer></div>
