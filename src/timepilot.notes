@@ -1055,7 +1055,7 @@ C 0x4A72 la primera palabra de cada renglon es la direccion de la VRAM
 C 0x4A87 0xFF acaba el renglon; otro 0xFF detras, la lista entera
 C 0x4AB3 los dos jugadores se turnan al morir
 C 0x4AC8 el rotulo del jugador que juega parpadea cada 0x40 fotogramas
-C 0x4B15 la fila de arriba, la del marcador
+C 0x4B15 0x7800 es el arranque de la tabla de nombres
 C 0x4B2E el area de juego son 24 filas de 24 columnas
 C 0x4B3F cada clase de choque tiene su rectangulo en la tabla de 0x4E64
 C 0x4B81 los caracteres del fondo se suben con sus copias desplazadas
@@ -1063,7 +1063,7 @@ C 0x4B9D el 0x11 cierra cada bloque de caracteres
 C 0x4BB6 0xE00A dice cuantas copias hacen falta, y de cuantos bits
 C 0x4C97 copiar VRAM a VRAM, byte a byte, leyendo y escribiendo
 C 0x4CB3 0xE018 lo baja la interrupcion UNA VEZ CADA 32 fotogramas, no cada uno
-C 0x4CB9 la Y 0xD1 deja el sprite fuera de la pantalla
+C 0x4CB9 0x7B00 es la tabla de atributos de los sprites
 C 0x4CC4 0xE180/0xE181: la epoca de cada jugador
 C 0x4CD4 registro y valor, por los puertos 0xA0 y 0xA1
 C 0x4D0D un dibujo del fondo: filas de tramos de (cuantos, caracter)
@@ -1761,7 +1761,7 @@ C 0x5df3 todos revientan a la vez, con la misma explosion
 C 0x5e6f y medio caracter mas para caer en el centro de la casilla
 C 0x5f03 diez bytes por ficha de avion
 C 0x5f9b y al chocar con un misil, el avion se estrella
-C 0x5752 al pasar del ultimo tercio se vuelve al primero
+C 0x5752 la Y 0xD1 deja el sprite fuera de la pantalla
 C 0x5ab5 la direccion que va de aqui al centro de la pantalla, 0x60,0x60
 C 0x5b73 el paso al centro se guarda en la ficha, y ya vuela solo
 C 0x5f8e los cuatro misiles contra el avion
@@ -1826,3 +1826,300 @@ C 0x462c y otro 0xFF detras cierra la fila
 C 0x5f4d el avion siempre en 0x54, 0x5C
 C 0x5cc3 la casilla del bicho, pasada a pixeles con su media casilla de correccion
 C 0x5cd8 la posicion del disparo se pasa del juego alterno al normal
+
+C 0x401E copiar B bytes a la VRAM: se pone la direccion una vez y luego solo datos
+C 0x4028 y rellenar es lo mismo con el byte siempre igual
+C 0x4037 la interrupcion guarda los cuatro pares que va a tocar
+C 0x4056 con joystick se lee por el registro 15 del PSG
+C 0x4061 el 0xCF elige el segundo puerto de mando
+C 0x406D lo leido del teclado se junta con lo del joystick en B
+C 0x4086 el `cpl` endereza la logica negativa del hardware
+C 0x408E si el mando no ha cambiado se guarda en 0xE009 y no en 0xE008: asi se sabe si hay flanco
+C 0x40AC 0xE145 con algo en los tres bits altos: la fase esta en una transicion y no se miran choques
+C 0x40BB cinco tandas de choques, cada una con su lista
+C 0x40CD 0x7B00 es la tabla de atributos de sprites, y son 0x60 bytes: 24 sprites
+
+C 0x4100 cuarenta cuadros entre tanda y tanda de enemigos
+C 0x410F y si la hay, se da otro paso sin salir: asi no se pierden fotogramas cuando el juego se atraganta
+C 0x4112 los mismos cuatro pares que se metieron al entrar
+C 0x412D disparar y soltar bombas van juntos, en el mismo fotograma del ciclo
+C 0x4137 los enemigos se atienden en tres de los seis fotogramas: son lo que mas cuesta
+C 0x414D los misiles de abajo salen en el fotograma del fondo
+C 0x415A y la cuenta de la fase, en el ultimo del ciclo
+C 0x415E `jp (hl)` pelado: es el salto de la tabla de arriba
+C 0x416B los siete bits de abajo son la duracion; el 7 es la marca de nota que se apaga sola
+
+C 0x4179 el escalon baja y se compara con lo que queda de nota
+C 0x4180 con el volumen a cero ya no hay nada que apagar
+C 0x4199 el `outi` manda el byte y avanza el puntero de una vez
+C 0x419F tres bits: el periodo del PSG son doce bits en dos registros
+C 0x41AB 0x98 en la mezcla: los tres tonos abiertos y el ruido solo en el canal C
+C 0x41B2 y el registro 6 con 0x1F, el periodo de ruido mas lento
+C 0x41BA cuatro rotaciones para bajar el nibble alto
+C 0x41C4 el volumen de arranque se guarda en la ficha para poder ir bajandolo
+
+C 0x41DA el puntero nuevo se guarda en los dos primeros bytes de la ficha
+C 0x41F1 el `rrca` del byte bajo de la direccion: las fichas van de ocho en ocho, asi que el bit 3 se convierte en el numero de canal
+C 0x41F9 el escalon del apagado no baja de 3
+C 0x4218 el `ld (hl),l` siembra un cero porque L vale 0: dos bytes en vez de tres
+C 0x4222 los quince registros del PSG, uno detras de otro
+C 0x4238 D empieza en 0x80 y sube: el registro se escribe en el byte alto de la direccion del VDP
+C 0x424B B y C a cero: 256 vueltas por tanda, y D baja por cada pagina
+
+C 0x4266 diez caracteres girados: las nubes del titulo
+C 0x4280 0xF8 bytes: 31 caracteres de ocho filas
+C 0x4293 cuatro parejas de tiras
+C 0x42AA los sprites se apagan antes de pintar nada
+C 0x42B6 cinco tramos de marco, cada uno con su cuenta y su caracter
+C 0x42C8 la pantalla de arriba se copia a la de en medio y a la de abajo dentro de la propia VRAM
+C 0x42D9 el `add a,a` deja 4 en el tercer canal: el 2 tiene prioridad sobre el 3
+C 0x42F4 el bit 0 del contador de fotogramas: el rotulo parpadea
+
+C 0x42FF cuatro bits: las teclas 1 a 4 de la fila 0
+C 0x4310 0x0C casillas: el ancho del rotulo
+C 0x4326 doce casillas por renglon
+C 0x433A y el ultimo tercio solo lleva tres
+C 0x434E la espera del menu se corta con cualquiera de las cuatro teclas
+C 0x437B los tres canales de sonido callados antes de arrancar la demo
+
+C 0x43B9 0xE000 a 1: dos jugadores
+C 0x43C0 la pantalla fija se pinta antes de la cuenta atras
+C 0x43C8 los dos bytes se escriben de una vez con un `ld (nn),de`
+C 0x43D0 aqui se espera a que la interrupcion de la vuelta al contador
+C 0x43E4 el destino de cada rotulo viene en la propia tabla, dos bytes
+C 0x43F5 y en el paso de pintar, el rotulo entero
+
+C 0x440F los cuatro bytes de arranque de los canales, uno por ficha
+C 0x441D los dos jugadores empiezan con tres vidas
+C 0x4424 la pantalla se borra antes de escribir el rotulo
+C 0x4436 dos puntos de espera con el rotulo puesto
+C 0x4450 0x18 bytes de estado del jugador a cero
+C 0x4462 y la misma cuenta al marcador que se ensena
+C 0x446F otros dos puntos antes de empezar
+C 0x4482 en la demo se juega siempre con un solo jugador
+C 0x448F 0x200 casillas: el hueco entero del segundo jugador
+C 0x44AA dos rotaciones: la epoca por cuatro, que son los caracteres de su rotulo
+
+C 0x44B2 cuatro caracteres: el rotulo de la epoca
+C 0x44BF el `rlca` pasa el numero de jugador a desplazamiento: cada uno tiene su pareja de bytes
+C 0x44DC 0x1FF bytes mas el que se siembra: las cuatro paginas enteras
+C 0x44EA ocho bytes: un caracter
+C 0x44F5 0x20 bytes en total para los dieciseis: dos por dibujo
+C 0x4500 B a cero son 256 vueltas
+C 0x450B tres tercios, uno por pasada
+C 0x454E B a cero otra vez: los 256 bytes de los dibujos de la epoca
+
+C 0x4562 los caracteres del fondo se suben girados: el mismo dibujo vale para varias direcciones
+C 0x457A cinco caracteres de color por epoca
+C 0x45C4 0x20 bytes por tanda: cuatro caracteres
+C 0x45CB dos tandas de ocho, una por juego de dibujos
+C 0x45EF 0x50 bytes: diez caracteres del fondo comunes
+C 0x45FA doce tramos de fondo en la primera epoca, trece en la segunda y once en la tercera
+C 0x4621 un 0xFF en la lista no es un caracter: es una orden de bloque
+C 0x4628 y si no, se rellenan tantas casillas como diga
+
+C 0x4668 siete grupos de sprites, cada uno con su cuenta al frente
+C 0x467C tantos sprites como diga la cuenta del grupo
+C 0x4681 y se pasa al grupo siguiente hasta agotar los siete
+C 0x468E 0xE146 a cero: no hay aviso de fase pendiente
+C 0x4697 0x1C bytes: las nueve nubes y su cierre
+C 0x46AD 0xE039 guarda por donde va el marcador que se dibuja solo
+C 0x46B3 y 0xE03B es su cuenta atras entre casilla y casilla
+C 0x46C5 el `rlca` convierte el numero de jugador en desplazamiento de dos bytes
+
+C 0x46E0 siete casillas: el hueco entero de las vidas
+C 0x46E5 primero se borran las siete
+C 0x46F7 y luego se pintan tantos aviones como vidas queden
+C 0x4703 el aviso se consume al leerlo
+C 0x471D la cuenta que se ensena y la de verdad no son la misma
+C 0x472B si ya coinciden no hay nada que repintar
+
+C 0x475B cinco marcas por fila
+C 0x476B hasta llenar la fila o agotar los grupos
+C 0x4784 el record son tres bytes en BCD
+C 0x479D seis cifras: los tres bytes en BCD
+C 0x47DA los sprites se apagan mientras dura la explosion
+
+C 0x47FB al perder la ultima vida el hueco queda a cero
+C 0x4801 y si aun le quedan, se le descuenta una
+C 0x4811 al llegar a 0x65 la cuenta, se cambia de epoca
+C 0x481F la sexta vuelta al contador vuelve a la primera epoca
+C 0x4850 el canal 4 es el de la musica
+C 0x4856 y la cuenta baja un paso
+
+C 0x4865 el jugador cobra por lo que queda vivo cuando la fase se acaba sola
+C 0x486F el aviso se consume al leerlo
+C 0x489F pasada la quinta epoca se vuelve a la primera
+C 0x48B9 el escalon sube de cinco en cinco rondas
+C 0x48BD hasta la ronda 5 son 25, de la 6 a la 10 treinta, y asi
+C 0x48DB los enemigos de la ronda quedan apuntados en el hueco del jugador
+
+C 0x48EA el canal 5 es el de los avisos
+C 0x490B 0x0A fotogramas de aviso de vida extra
+C 0x492C solo interesan cuatro bits: las teclas 1 a 4
+C 0x495E dos casillas: el rotulo de 1UP o 2UP
+C 0x4971 y los sprites del jugador que se va, apagados
+
+C 0x4999 el registro 15 del PSG a cero: se apaga tambien el puerto de salida
+C 0x49A7 si no hay otro jugador esperando, sigue el mismo
+C 0x49DF dos puntos de espera con el rotulo puesto
+C 0x4A0E el 0xE7 es el "2" que sustituye al "1" del rotulo
+C 0x4A15 dos puntos de espera con el GAME OVER puesto
+
+C 0x4A35 dos puntos de espera antes de volver al titulo
+C 0x4A3F el `nop` es la espera que pide el PSG entre escribir el registro y leerlo
+C 0x4A43 el nibble alto a unos: solo se elige fila, no se escribe nada mas
+C 0x4A51 el teclado da las teclas a cero; se invierte para trabajar con unos
+C 0x4A68 cinco listas de rotulos, una detras de otra
+C 0x4A82 el caracter se repite sin volver a poner direccion
+C 0x4A9A tres bytes: seis cifras
+
+C 0x4AB0 tres bytes, dos cifras cada uno
+C 0x4ABD el hueco de vidas del jugador que entra
+C 0x4AEF dos casillas: el rotulo entero
+C 0x4B0D sin acarreo no hace falta tocar el byte alto
+C 0x4B1E B a cero son 256 casillas
+C 0x4B36 de una fila a la siguiente van 32 casillas, no 24
+
+C 0x4B5F dentro de los cuatro limites: se tocan
+C 0x4B61 y si no, carry a cero
+C 0x4B91 tantos bloques como diga B
+C 0x4B97 ocho bytes: un caracter
+C 0x4BA1 el 0x11 se copia tambien, para cerrar el taller
+C 0x4BA7 sin desplazamiento apuntado se hacen tres vueltas
+C 0x4BB9 dos bits por vuelta dan cuatro copias; cuatro bits dan dos
+
+C 0x4BD2 ocho bytes por caracter
+C 0x4BD5 y se sigue hasta el 0x11 que cierra el bloque
+C 0x4BE5 0xA0 bytes: los veinte caracteres que caben en el taller
+C 0x4C01 tantos bloques como diga C
+C 0x4C32 el rotulo son dos casillas, que se pintan juntas
+C 0x4C3C sin llegar a cero no toca mover
+
+C 0x4CBC 0x80 bytes: los 32 sprites de cuatro bytes
+C 0x4CBE se rellena entero con 0xD1, que como Y deja el sprite fuera de la pantalla
+C 0x4CD2 el registro se elige por el 0xA0 y el valor va por el 0xA1
+C 0x4CDA tantas parejas como diga B
+
+C 0x5012 al acabar la aceleracion el bit 0 se queda solo
+C 0x5033 ocho rumbos: los tres bits de abajo
+C 0x503B lo mismo con el rumbo contrario
+C 0x5047 los tres bits altos de la ficha dicen de que clase es
+C 0x5069 y dentro de cada tabla, dos bytes por rumbo
+
+C 0x5075 el signo se extiende poniendo H a 0xFF
+C 0x5079 y la ficha se queda con el caracter y la casilla nuevos
+C 0x5088 la nube 0 marca el rumbo, y las otras ocho la copian
+C 0x50A7 nueve nubes en el cielo
+C 0x50C1 se salta al otro lado sumando las 24 columnas del area
+
+C 0x50E1 el juego alterno de registros se usa para llevar dos punteros a la vez
+C 0x50ED 24 caracteres por juego
+C 0x510B nueve nubes otra vez
+C 0x5119 la nube desplazada ocupa dos filas mas
+C 0x5122 cuatro casillas de ancho
+C 0x5144 de una fila a la siguiente, 32 casillas
+
+C 0x514D 0x78 es el primer tercio
+C 0x5156 tres bytes: la ficha de la nube siguiente
+C 0x5182 el giro se apunta y se hace en la vuelta de despues
+C 0x5191 y al acabar el giro se vuelve a acelerar
+
+C 0x5236 siete fichas en el primer grupo
+C 0x523B diez bytes por ficha
+C 0x5265 cuatro fichas en el segundo grupo
+C 0x5289 seis fichas en el tercero
+C 0x5291 siete bytes por disparo
+
+C 0x548C con el jugador estrellado no hay disparo
+C 0x549E ocho disparos como mucho a la vez
+C 0x54A4 cuatro bytes por ficha de disparo
+C 0x54AB la ficha se queda con la casilla y el caracter
+C 0x54B8 el byte que hay en la casilla se lee por el puerto 0x99
+C 0x54D3 nueve fotogramas dura el disparo
+
+C 0x54EB y se apunta uno mas
+C 0x5519 ocho fichas de disparo
+C 0x551E la ficha a cero es un hueco libre
+C 0x552E los caracteres por debajo del 0x0B son cielo
+
+C 0x5548 cuatro bytes por ficha de disparo
+C 0x554E el `jp (hl)` que remata el salto por tabla
+C 0x55B0 restar 0x1F es subir una fila y correrse una columna
+C 0x55C4 los cinco bits bajos son la columna
+
+C 0x5680 los tres bits altos del byte dicen que clase de orden es
+C 0x569C la prioridad 6 no pisa lo que suene por encima
+C 0x56B3 dos bytes por dibujo
+C 0x56CF los cinco bits bajos son la columna
+C 0x56F7 y quedan puestos los dos avisos de fase acabada
+C 0x5706 24 caracteres de un dibujo al siguiente
+
+C 0x5739 los tres bits bajos son la cuenta atras de este paso
+C 0x5743 0xE3DA y 0xE3DE son los bytes de dibujo de dos sprites
+C 0x5757 y la orden pasa a ser la 0xF0
+C 0x5763 aqui la cuenta atras es de cinco bits, que es una espera mucho mas larga
+C 0x5771 0xE050 puesto: el jugador se ha estrellado
+C 0x579C seis disparos enemigos como mucho
+C 0x57AE siete bytes por ficha de disparo enemigo
+
+C 0x58A5 y si se sale por abajo, se apaga
+C 0x58C2 cuatro misiles como mucho
+C 0x58C7 los tres bits altos: 0x80 vivo, 0xC0 muriendo
+C 0x58D2 los tres bits bajos son la cuenta de la explosion
+C 0x58DB la Y 0xD1 deja el sprite fuera de la pantalla
+C 0x58F9 catorce fotogramas de sonido
+C 0x5902 la cuenta sube hasta cero, que es cuando toca apuntar
+
+C 0x591E ocho rumbos: los tres bits bajos
+C 0x593F los dos bits bajos son la cuenta entre fotograma y fotograma
+C 0x5948 0x10 fotogramas hasta el paso siguiente
+C 0x595C cuatro misiles
+C 0x596A las cuentas de salto que usan las fichas: 4, 7, 9, 10 y 32 bytes
+C 0x5985 el bicho grande solo humea si esta vivo
+
+C 0x5992 los cinco bits bajos son la columna
+C 0x5994 tres rotaciones: la columna por ocho, que son los pixeles
+C 0x599B los dos desplazamientos de DE con acarreo bajan la fila a pixeles
+C 0x59C8 el 0x0F es el color del humo
+C 0x59D0 0x20 bytes: los cuatro caracteres del sprite grande
+C 0x5A0B cuatro pixeles: medio caracter
+
+C 0x5A8C B es la velocidad en pixeles, la misma para las dos coordenadas
+C 0x5A91 en diagonal se mueven las dos coordenadas
+C 0x5A98 el `inc de` deja el puntero en la X
+C 0x5ABC 0x60 es el centro en las dos coordenadas
+C 0x5AC8 el signo dice de que lado esta
+C 0x5AD4 el rumbo 3 es hacia abajo
+C 0x5AE3 el rumbo 1 es la diagonal de arriba a la derecha
+C 0x5AEE el rumbo 1 tambien vale para la diagonal larga
+
+C 0x5B09 el rumbo 6 es la diagonal de abajo a la izquierda
+C 0x5B1D el rumbo 7 es hacia la izquierda
+C 0x5B2B el rumbo 4 es hacia la derecha
+C 0x5B3B el 3 y el 1 son los dos sentidos en Y
+C 0x5B57 dividir la mayor entre la menor da el paso de la coordenada corta
+C 0x5B5A la coordenada larga avanza un pixel cada vez
+
+C 0x5B8A 0xE1F0 a 0xE1F2 son los tres bytes de trabajo de la division
+C 0x5BA7 la resta ha salido: el bit del cociente es 1
+C 0x5BA9 ocho bits de cociente
+C 0x5BBF y se apunta uno mas
+C 0x5BCC dos huecos de misil para estos
+C 0x5BD5 nueve bytes por ficha de misil
+
+C 0x5C1C ocho disparos del jugador
+C 0x5C2D tres rotaciones: la columna por ocho, que son los pixeles
+C 0x5C50 seis fichas se miran aqui, aunque el grupo que mueve 0x5236 tiene siete
+C 0x5CA7 diez bytes por ficha
+C 0x5CC6 tres rotaciones: la columna por ocho
+C 0x5CF4 y se apunta el impacto
+
+C 0x5CFA los impactos vuelven a cero
+C 0x5D07 el canal 5 lleva el sonido de que el bicho revienta
+C 0x5D13 y el disparo que lo remato se apaga
+C 0x5D1D patron 0x10 y color 8: la explosion gorda
+C 0x5D2B en la epoca 5 la explosion va de amarillo
+C 0x5D4D cuatro filas de bloque
+C 0x5D6C cuatro bombas
+C 0x5D82 cuatro bytes por sprite
