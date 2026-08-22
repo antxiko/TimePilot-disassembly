@@ -216,7 +216,7 @@ def main(docdir, idioma="en"):
         dst = os.path.join(docdir, fn[:-3] + ".html")
         texto = open(src, encoding="utf-8").read()
         m = re.search(r"^#\s+(.*)$", texto, re.M)
-        titulo = (m.group(1) if m else fn[:-3]) + " — Time Pilot"
+        titulo = (m.group(1) if m else fn[:-3]) + " — Time Pilot (1983)"
         open(dst, "w", encoding="utf-8").write(
             convierte(texto, titulo, fn[:-3] + ".html", idioma))
         print(f"  {fn} -> {os.path.basename(dst)}")
