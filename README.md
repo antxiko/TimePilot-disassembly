@@ -65,7 +65,7 @@ as data may come out as code, and no entry point may fall inside one.
 | bytes of data | 7,473 |
 | bytes unidentified | **0** |
 | named labels | 593 |
-| anchored comments | 1,170 |
+| anchored comments | 1,213 |
 | explained data ranges | 106 |
 
 ## Some of what turned up

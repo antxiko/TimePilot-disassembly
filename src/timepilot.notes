@@ -2256,3 +2256,54 @@ C 0x682E el rumbo 4 es hacia abajo
 C 0x6845 seis fichas
 C 0x684E diez bytes por ficha
 C 0x6851 hasta agotar las seis
+
+C 0x53E8 cuatro rotaciones y una mas con acarreo: la direccion por 32
+C 0x53F4 0x20 bytes: los cuatro caracteres del sprite
+C 0x5DF8 patron 8 y color 8: el primer paso de la explosion
+C 0x451E B a cero son 256 casillas
+C 0x452F las epocas 1 y 2 comparten nubes
+C 0x57E1 dos bytes por paso
+C 0x57EF el `neg` da la vuelta al avance
+C 0x5A60 y la ficha queda libre
+C 0x57CB los tres bits bajos son la cuenta de la explosion
+C 0x5A3A la recarga se copia sobre la cuenta
+
+C 0x53B4 los cuatro bits bajos: las cuatro direcciones del mando
+C 0x53C4 sin giro pendiente, B queda a cero
+C 0x53C8 B a uno: se gira en un sentido
+C 0x53DA y B a dos: en el otro
+C 0x53FB la direccion nueva y el sentido del giro se guardan
+
+C 0x5411 y el sprite queda en su patron y su color
+C 0x5415 los tres bits bajos son la cuenta
+C 0x5419 y mientras no llegue a cero, se descuenta
+C 0x5427 los tres bits bajos otra vez
+C 0x543D el caracter 0x0A es el cielo: la casilla se limpia
+C 0x5455 el aviso se consume y 0xE050 queda puesto
+
+C 0x55AC el dibujo 7 es el paso siguiente hacia arriba
+C 0x55CA el dibujo 8 es el que va a la derecha
+C 0x55DF el dibujo 1 mira a la derecha y abajo
+C 0x5605 el dibujo 2 es el que va hacia abajo
+C 0x5618 los cinco bits bajos son la columna
+
+C 0x5625 el dibujo 3 mira abajo y a la izquierda
+C 0x5646 el dibujo 4 es el que va a la izquierda
+C 0x5652 restar 0x20 es subir una fila
+C 0x5656 el dibujo 5 mira arriba y a la izquierda
+
+C 0x5A46 dos bytes por rumbo
+C 0x57BA cuatro fichas de bomba
+C 0x5A42 ocho rumbos en la tabla de 0x5A7C
+
+C 0x41CD los siete bits bajos son la duracion
+C 0x41E3 el 0xFF se queda como byte alto: el canal se da por callado
+C 0x422F el nibble alto a unos: no se pulsa ninguna fila
+C 0x423F y el registro siguiente
+
+C 0x4240 los ocho registros, uno a uno
+C 0x4256 un solo bloque en la lista
+C 0x426F y se vuelve a apagar
+C 0x4275 tres bloques en la lista
+C 0x4288 tres bloques en la lista
+C 0x42BE y el tramo siguiente

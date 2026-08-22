@@ -338,7 +338,7 @@ CANAL_PON_VOLUMEN:
 	ld (hl),a			;41c8
 	bit 7,a		;41c9   ; con el bit 7 en la duracion, la nota se va apagando sola
 	jr z,CANAL_GUARDA_PUNTERO		;41cb
-	and 07fh		;41cd
+	and 07fh		;41cd   ; los siete bits bajos son la duracion
 	inc hl			;41cf
 	inc hl			;41d0
 	inc hl			;41d1
@@ -361,7 +361,7 @@ CANAL_SIGUE:
 CANAL_FIN:		; Se acabo el programa: se calla el canal y se enciende el ruido
 	inc a			;41e1   ; se acabo el programa: el puntero se deja apuntando al 0xFF
 	dec hl			;41e2
-	ld (hl),a			;41e3
+	ld (hl),a			;41e3   ; el 0xFF se queda como byte alto: el canal se da por callado
 	inc hl			;41e4
 	inc hl			;41e5
 	ld a,007h		;41e6   ; al acabar el programa, la mezcla vuelve a dejar el ruido suelto
@@ -408,7 +408,7 @@ INIT:
 	out (0a0h),a		;4229   ; registro 15 del PSG: los puertos de mando como salida
 	ld a,0cfh		;422b
 	out (0a1h),a		;422d
-	ld a,0f0h		;422f
+	ld a,0f0h		;422f   ; el nibble alto a unos: no se pulsa ninguna fila
 	out (0aah),a		;4231   ; el puerto 0xAA es la fila del teclado que se va a leer
 	ld hl,04d05h		;4233   ; los ocho registros del VDP, uno detras de otro desde el 0
 	ld b,008h		;4236
@@ -417,8 +417,8 @@ INIT_REGISTROS_VDP:
 	ld e,(hl)			;423a
 	call PON_DIRECCION_VDP		;423b
 	inc hl			;423e
-	inc d			;423f
-	djnz INIT_REGISTROS_VDP		;4240
+	inc d			;423f   ; y el registro siguiente
+	djnz INIT_REGISTROS_VDP		;4240   ; los ocho registros, uno a uno
 	im 1		;4242   ; modo 1 de interrupcion, que es el que usa la BIOS del MSX
 PANTALLA_DE_TITULO:		; Borra la VRAM y monta la pantalla de titulo
 	di			;4244
@@ -431,7 +431,7 @@ BORRA_VRAM:
 	dec d			;4250
 	jr nz,BORRA_VRAM		;4251
 	ld hl,06a85h		;4253   ; los caracteres del marco del marcador
-	ld c,001h		;4256
+	ld c,001h		;4256   ; un solo bloque en la lista
 	call CARGA_LISTA_DE_BLOQUES		;4258
 	ld a,001h		;425b
 	ld (0e00ah),a		;425d   ; 0xE00A a 1: las nubes del titulo se copian desplazadas dos bits
@@ -441,16 +441,16 @@ BORRA_VRAM:
 	call PON_DIRECCION_VDP		;4268
 	call SUBE_CARACTERES_GIRADOS		;426b
 	xor a			;426e
-	ld (0e00ah),a		;426f
+	ld (0e00ah),a		;426f   ; y se vuelve a apagar
 	ld hl,07792h		;4272   ; los caracteres con los que estan escritos el titulo y el menu
-	ld c,003h		;4275
+	ld c,003h		;4275   ; tres bloques en la lista
 	call CARGA_LISTA_DE_BLOQUES		;4277
 	ld hl,0798bh		;427a   ; la fuente: 248 bytes, o sea 31 caracteres, en 0xDC-0xFA
 	ld de,066e0h		;427d
 	ld b,0f8h		;4280   ; 0xF8 bytes: 31 caracteres de ocho filas
 	call COPIA_A_VRAM		;4282
 	ld hl,0712bh		;4285   ; los patrones de sprite que valen para todas las epocas
-	ld c,003h		;4288
+	ld c,003h		;4288   ; tres bloques en la lista
 	call CARGA_LISTA_DE_BLOQUES		;428a
 	ld de,05ba0h		;428d   ; las dos primeras tiras de las nubes de la epoca 5, alternadas de ocho en ocho
 	call PON_DIRECCION_VDP		;4290
@@ -476,7 +476,7 @@ PINTA_MARCO:
 	inc hl			;42b9
 	ld a,(hl)			;42ba
 	call RELLENA_VRAM_CON_A		;42bb
-	inc hl			;42be
+	inc hl			;42be   ; y el tramo siguiente
 	dec c			;42bf
 	jr nz,PINTA_MARCO		;42c0
 	ld de,00000h		;42c2
@@ -796,7 +796,7 @@ BORRA_TRES_TERCIOS:
 	ld c,003h		;451b
 BORRA_TRES_TERCIOS_2:
 	xor a			;451d   ; y la de nombres tambien
-	ld b,a			;451e
+	ld b,a			;451e   ; B a cero son 256 casillas
 	call RELLENA_VRAM_CON_A		;451f
 	dec c			;4522
 	jr nz,BORRA_TRES_TERCIOS_2		;4523
@@ -804,7 +804,7 @@ BORRA_TRES_TERCIOS_2:
 	push af			;4528
 	ld de,06058h		;4529
 	ld hl,06ad0h		;452c
-	cp 003h		;452f
+	cp 003h		;452f   ; las epocas 1 y 2 comparten nubes
 	jr c,CARGA_NUBES		;4531
 	ld hl,06ad8h		;4533
 	jr z,CARGA_NUBES		;4536
@@ -2922,7 +2922,7 @@ PASO_DEL_JUGADOR:
 	jp JUGADOR_ESPERA_A_REVIVIR		;53ae
 JUGADOR_MIRA_MANDO:
 	ld a,(0e009h)		;53b1
-	and 00fh		;53b4
+	and 00fh		;53b4   ; los cuatro bits bajos: las cuatro direcciones del mando
 	ld (hl),a			;53b6
 	jr z,JUGADOR_PON_SPRITE		;53b7
 	inc hl			;53b9
@@ -2932,9 +2932,9 @@ JUGADOR_MIRA_MANDO:
 	ld a,(hl)			;53c1
 	pop hl			;53c2
 	sub (hl)			;53c3
-	ld b,000h		;53c4
+	ld b,000h		;53c4   ; sin giro pendiente, B queda a cero
 	jr z,JUGADOR_GUARDA_GIRO		;53c6   ; si ya se va por ahi, no hay nada que girar
-	ld b,001h		;53c8
+	ld b,001h		;53c8   ; B a uno: se gira en un sentido
 	jr nc,JUGADOR_MIRA_VUELTA		;53ca
 	neg		;53cc
 	cp 008h		;53ce   ; el giro va por el lado corto: como mucho ocho pasos
@@ -2947,7 +2947,7 @@ JUGADOR_MIRA_VUELTA:
 	cp 00ah		;53d6
 	jr c,JUGADOR_GIRA_MAS		;53d8
 JUGADOR_GIRA_MENOS:
-	ld b,002h		;53da
+	ld b,002h		;53da   ; y B a dos: en el otro
 	ld a,(hl)			;53dc
 	dec a			;53dd
 JUGADOR_CARGA_SPRITE:
@@ -2957,7 +2957,7 @@ JUGADOR_CARGA_SPRITE:
 	push bc			;53e2
 	ld hl,06f2bh		;53e3   ; y el dibujo del avion se sube a la VRAM en cuanto cambia la direccion
 	ld d,000h		;53e6
-	rlca			;53e8
+	rlca			;53e8   ; cuatro rotaciones y una mas con acarreo: la direccion por 32
 	rlca			;53e9
 	rlca			;53ea
 	rlca			;53eb
@@ -2966,11 +2966,11 @@ JUGADOR_CARGA_SPRITE:
 	ld e,a			;53ef
 	add hl,de			;53f0
 	ld de,05800h		;53f1
-	ld b,020h		;53f4
+	ld b,020h		;53f4   ; 0x20 bytes: los cuatro caracteres del sprite
 	call COPIA_A_VRAM		;53f6
 	pop bc			;53f9
 	pop hl			;53fa
-	ld (hl),c			;53fb
+	ld (hl),c			;53fb   ; la direccion nueva y el sentido del giro se guardan
 JUGADOR_GUARDA_GIRO:
 	dec hl			;53fc
 	ld (hl),b			;53fd
@@ -2984,13 +2984,13 @@ JUGADOR_PON_SPRITE:
 	inc hl			;540d
 	ld (hl),054h		;540e
 	inc hl			;5410
-	ld (hl),000h		;5411
+	ld (hl),000h		;5411   ; y el sprite queda en su patron y su color
 	ret			;5413
 JUGADOR_EXPLOTA:
 	ld a,(hl)			;5414   ; la explosion son dos pasos, uno cada ocho fotogramas
-	and 007h		;5415
+	and 007h		;5415   ; los tres bits bajos son la cuenta
 	jr z,JUGADOR_EXPLOTA_2		;5417
-	dec (hl)			;5419
+	dec (hl)			;5419   ; y mientras no llegue a cero, se descuenta
 	ret			;541a
 JUGADOR_EXPLOTA_2:
 	ld a,00ch		;541b   ; patron 0x0C: el segundo paso de la explosion
@@ -3000,7 +3000,7 @@ JUGADOR_EXPLOTA_2:
 	ret			;5425
 JUGADOR_CAE:
 	ld a,(hl)			;5426
-	and 007h		;5427
+	and 007h		;5427   ; los tres bits bajos otra vez
 	jr z,JUGADOR_CAE_2		;5429
 	dec (hl)			;542b
 	ret			;542c
@@ -3011,7 +3011,7 @@ JUGADOR_CAE_2:
 	ld (0e145h),a		;5434   ; estado 0x90: esperando a revivir, con dieciseis fotogramas
 	ld de,0798bh		;5437
 	call PON_DIRECCION_VDP		;543a
-	ld a,00ah		;543d
+	ld a,00ah		;543d   ; el caracter 0x0A es el cielo: la casilla se limpia
 	out (098h),a		;543f
 	ret			;5441
 JUGADOR_ESPERA_A_REVIVIR:
@@ -3027,7 +3027,7 @@ JUGADOR_REVIVE:
 	ld hl,0e052h		;5450   ; y si ademas se acabo la partida, se avisa al programa principal
 	cp (hl)			;5453
 	ret nz			;5454
-	ld (hl),000h		;5455
+	ld (hl),000h		;5455   ; el aviso se consume y 0xE050 queda puesto
 	ld (0e050h),a		;5457
 	ret			;545a
 
@@ -3279,7 +3279,7 @@ DISPARO_1_FILA:
 	ld a,h			;55a7
 	cp 078h		;55a8
 	jr c,DISPARO_APAGA		;55aa
-	ld d,007h		;55ac
+	ld d,007h		;55ac   ; el dibujo 7 es el paso siguiente hacia arriba
 	jr DISPARO_ESCRIBE		;55ae
 DISPARO_2:
 	ld hl,0ffe1h		;55b0   ; restar 0x1F es subir una fila y correrse una columna
@@ -3301,7 +3301,7 @@ DISPARO_4_COLUMNA:
 	and 01fh		;55c4   ; los cinco bits bajos son la columna
 	cp 018h		;55c6   ; pasada la columna 24 el disparo se ha salido por el lado
 	jr nc,DISPARO_APAGA		;55c8
-	ld d,008h		;55ca
+	ld d,008h		;55ca   ; el dibujo 8 es el que va a la derecha
 	jr DISPARO_ESCRIBE		;55cc
 DISPARO_5:
 	inc de			;55ce   ; el dibujo cambia cada dos pasos, y con el la casilla
@@ -3314,7 +3314,7 @@ DISPARO_5:
 	and 01fh		;55d9
 	cp 018h		;55db
 	jr nc,DISPARO_APAGA		;55dd
-	ld d,001h		;55df
+	ld d,001h		;55df   ; el dibujo 1 mira a la derecha y abajo
 	jr DISPARO_ESCRIBE		;55e1
 DISPARO_6:
 	ld hl,00021h		;55e3   ; direccion 6: a 45 grados, una fila y una columna de golpe
@@ -3340,7 +3340,7 @@ DISPARO_8_FILA:
 	ld a,h			;5600
 	cp 07bh		;5601   ; y pasada la fila 0x7B se ha salido por abajo
 	jr nc,DISPARO_APAGA		;5603
-	ld d,002h		;5605
+	ld d,002h		;5605   ; el dibujo 2 es el que va hacia abajo
 	jp DISPARO_ESCRIBE		;5607
 DISPARO_9:
 	ld hl,00020h		;560a   ; direccion 9: baja tirando a la izquierda
@@ -3352,13 +3352,13 @@ DISPARO_9:
 	dec hl			;5616
 DISPARO_9_COLUMNA:
 	ld a,l			;5617   ; se mira que la casilla siga dentro por los dos lados
-	and 01fh		;5618
+	and 01fh		;5618   ; los cinco bits bajos son la columna
 	cp 018h		;561a
 	jp nc,DISPARO_APAGA		;561c
 	ld a,h			;561f
 	cp 07bh		;5620
 	jp nc,DISPARO_APAGA		;5622
-	ld d,003h		;5625
+	ld d,003h		;5625   ; el dibujo 3 mira abajo y a la izquierda
 	jp DISPARO_ESCRIBE		;5627
 DISPARO_10:
 	ld hl,0001fh		;562a   ; direccion 10: a 45 grados hacia abajo y a la izquierda
@@ -3380,17 +3380,17 @@ DISPARO_12_COLUMNA:
 	and 01fh		;563f
 	cp 018h		;5641
 	jp nc,DISPARO_APAGA		;5643
-	ld d,004h		;5646
+	ld d,004h		;5646   ; el dibujo 4 es el que va a la izquierda
 	jp DISPARO_ESCRIBE		;5648
 DISPARO_13:
 	dec de			;564b   ; direccion 13: a la izquierda, subiendo de vez en cuando
 	ld a,(bc)			;564c
 	cp 004h		;564d
 	jp nz,DISPARO_12_COLUMNA		;564f
-	ld hl,0ffe0h		;5652
+	ld hl,0ffe0h		;5652   ; restar 0x20 es subir una fila
 	add hl,de			;5655
 DISPARO_13_PON:
-	ld d,005h		;5656
+	ld d,005h		;5656   ; el dibujo 5 mira arriba y a la izquierda
 	jp DISPARO_ESCRIBE		;5658
 DISPARO_14:
 	ld hl,0ffdfh		;565b   ; direccion 14: a 45 grados hacia arriba y a la izquierda
@@ -3634,7 +3634,7 @@ DISPARO_ENEMIGO_SIGUIENTE:
 PASO_DE_LAS_BOMBAS:		; Las cuatro fichas de 0xE260, que solo se usan en la epoca 1: las bombas que sueltan los aviones al pasar por arriba
 	ld hl,0e260h		;57b4
 	ld de,0e3ach		;57b7
-	ld b,004h		;57ba
+	ld b,004h		;57ba   ; cuatro fichas de bomba
 PASO_DE_UNA_BOMBA:
 	push bc			;57bc
 	push de			;57bd
@@ -3646,7 +3646,7 @@ PASO_DE_UNA_BOMBA:
 	cp 0c0h		;57c6   ; o reventando, que es una cuenta atras y a la basura
 	jr nz,BOMBA_SIGUIENTE		;57c8
 	ld a,(hl)			;57ca
-	and 007h		;57cb
+	and 007h		;57cb   ; los tres bits bajos son la cuenta de la explosion
 	jr z,BOMBA_SE_APAGA		;57cd
 	dec (hl)			;57cf
 	jr BOMBA_SIGUIENTE		;57d0
@@ -3663,7 +3663,7 @@ BOMBA_CAE:		; Recorre la trayectoria de 0x5807, paso a paso
 	ld a,(hl)			;57dc
 	inc (hl)			;57dd
 	ld hl,05807h		;57de   ; la caida esta tabulada: setenta y dos parejas, dos bytes por paso
-	rlca			;57e1
+	rlca			;57e1   ; dos bytes por paso
 	call SUMA_A_HL		;57e2
 	ld a,(de)			;57e5
 	add a,(hl)			;57e6
@@ -3673,7 +3673,7 @@ BOMBA_CAE:		; Recorre la trayectoria de 0x5807, paso a paso
 	ld a,(hl)			;57ea
 	bit 0,c		;57eb   ; y el avance en X va en un sentido o en el otro segun el bit 0
 	jr z,BOMBA_GUARDA_X		;57ed
-	neg		;57ef
+	neg		;57ef   ; el `neg` da la vuelta al avance
 BOMBA_GUARDA_X:
 	ld c,a			;57f1   ; el avance en X se le suma a la casilla de la bomba
 	ld a,(de)			;57f2
@@ -4029,7 +4029,7 @@ CUENTA_ATRAS_PASO:
 	dec hl			;5a37
 	ld a,(hl)			;5a38
 	dec hl			;5a39
-	ld (hl),a			;5a3a
+	ld (hl),a			;5a3a   ; la recarga se copia sobre la cuenta
 	inc hl			;5a3b
 	inc hl			;5a3c
 	ld a,(de)			;5a3d
@@ -4038,9 +4038,9 @@ CUENTA_ATRAS_PASO:
 	ret			;5a40
 MUEVE_SPRITE:		; Mueve la posicion (Y, X) de DE en la direccion C, con paso B
 	push hl			;5a41   ; la direccion es de ocho, no de dieciseis: los sprites no afinan tanto
-	ld hl,05a7ch		;5a42
+	ld hl,05a7ch		;5a42   ; ocho rumbos en la tabla de 0x5A7C
 	ld a,c			;5a45
-	call LEE_PALABRA_DE_TABLA		;5a46
+	call LEE_PALABRA_DE_TABLA		;5a46   ; dos bytes por rumbo
 	call SALTA_A_HL		;5a49
 	pop hl			;5a4c
 APAGA_SI_SE_SALE:		; Si el sprite se ha ido de la pantalla, lo manda a Y=0xD1 y libera la ficha
@@ -4057,7 +4057,7 @@ APAGA_SPRITE:
 	ld a,0d1h		;5a5c   ; la ficha se libera mandando su sprite a Y=0xD1
 	ld (de),a			;5a5e
 	xor a			;5a5f
-	ld (hl),a			;5a60
+	ld (hl),a			;5a60   ; y la ficha queda libre
 	ld a,e			;5a61
 	cp 0a7h		;5a62   ; solo descuentan los sprites de 0xE38C a 0xE3A7, o sea los siete aviones
 	jr nc,SIGUIENTE_SPRITE		;5a64
@@ -4709,7 +4709,7 @@ MATA_A_TODOS_BUCLE:
 	ld (de),a			;5df5
 	inc hl			;5df6
 	inc hl			;5df7
-	ld (hl),008h		;5df8
+	ld (hl),008h		;5df8   ; patron 8 y color 8: el primer paso de la explosion
 	inc hl			;5dfa
 	ld (hl),008h		;5dfb
 	push hl			;5dfd
