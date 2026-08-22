@@ -2123,3 +2123,136 @@ C 0x5D2B en la epoca 5 la explosion va de amarillo
 C 0x5D4D cuatro filas de bloque
 C 0x5D6C cuatro bombas
 C 0x5D82 cuatro bytes por sprite
+
+C 0x5D86 cuatro bombas
+C 0x5D99 cuatro misiles
+C 0x5DCB nueve bytes por misil
+C 0x5DD8 cuatro bytes por ficha de disparo
+C 0x5DE7 seis fichas otra vez, como en 0x5C50
+C 0x5E09 diez bytes por ficha
+C 0x5E12 tantas fichas como diga B
+
+C 0x5E17 doce sprites
+C 0x5E1B cuatro bytes por atributo
+C 0x5E3B el pasajero desaparece de la ficha
+C 0x5E3C y su sprite se va a Y=0xD1
+C 0x5E51 la prioridad se sube a 8
+C 0x5E6C tres rotaciones: la columna por ocho
+C 0x5E97 patron 0x10 y color 8: la explosion gorda
+
+C 0x5EA5 en la epoca 5 la explosion va de amarillo
+C 0x5ECA cuatro filas de bloque
+C 0x5EDE seis fichas de avion
+C 0x5EFC el avion desaparece de su ficha
+C 0x5EFF y su sprite se va a Y=0xD1
+C 0x5F05 diez bytes por ficha
+C 0x5F16 seis disparos enemigos
+
+C 0x5F36 seis disparos
+C 0x5F3E cuatro fichas de lo que suelta la epoca
+C 0x5F60 cuatro fichas
+C 0x5F68 cuatro misiles
+C 0x5F8B cuatro misiles
+C 0x5F92 el misil desaparece de su ficha
+C 0x5F98 patron 8: el primer paso de la explosion
+
+C 0x5FC5 los tres canales, con prioridad 2
+C 0x5FDF y con carry, la ficha esta viva
+C 0x5FE1 y si no, carry a cero
+C 0x6019 siete fichas de actor
+C 0x602D los tres bits bajos son la cuenta de la explosion
+
+C 0x604C los tres bits bajos son la cuenta
+C 0x6057 patron 0x0C: el primer dibujo del actor
+C 0x607F diez bytes por ficha
+C 0x608A y mientras no llegue a cero, no gira
+C 0x609C ocho rumbos: los tres bits de abajo
+C 0x60A4 los cuatro bits bajos del R: dieciseis valores
+
+C 0x60E2 dos rotaciones y tres bits: el camino contrario al de 0x60AC
+C 0x610E si ya apunta al centro, dispara
+C 0x6113 el disparo sale con la cuenta puesta a 0xFF
+
+C 0x613A dos bajadas por vuelta: el giro va al doble
+C 0x614F ocho rumbos: los tres bits de abajo
+C 0x615E el patron del sprite es el rumbo por cuatro, mas 0x20
+C 0x6166 el disparo sale con la cuenta puesta a 0xFF
+C 0x6190 y la cuenta vuelve a cinco
+C 0x61A7 y hacia la izquierda, un pixel al reves
+
+C 0x61BC y la cuenta vuelve a cinco
+C 0x61C1 la direccion 2 es a la derecha y la 6 a la izquierda
+C 0x61D2 los seis bits bajos: 64 pasos de onda
+C 0x61D8 dos bytes por paso
+C 0x61E7 el `neg` da la vuelta al paso
+
+C 0x6220 los dos dibujos de perfil, otra vez
+C 0x6247 el 0xFF es -1: hacia atras
+C 0x625F y el 1 es hacia adelante
+C 0x628D un pixel por fotograma
+
+C 0x62A6 los cuatro bits bajos: dieciseis pasos
+C 0x62A8 dos bytes por entrada
+C 0x62C4 ocho rumbos: los tres bits de abajo
+C 0x62C9 el patron es el rumbo por cuatro, mas 0x20
+C 0x62DC este vuela de uno en uno
+
+C 0x63C2 nueve bytes por ficha de misil
+C 0x63C5 cuatro fichas
+C 0x63CB estado 0x83: el misil nace volando
+C 0x63EE el color 10 en vez del 1
+C 0x63FF la prioridad se sube a 12
+
+C 0x6446 la bandera se apaga: cada disparo pide que se la vuelvan a poner
+C 0x645A siete bytes por ficha de disparo
+C 0x645D seis fichas
+C 0x6471 el disparo sale con la cuenta puesta a 0xFF
+C 0x6481 el patron 0x60 es el del disparo enemigo
+C 0x648A prioridad 5 en el canal 1
+C 0x649D seis fichas de avion
+
+C 0x64A9 diez bytes por ficha
+C 0x64AC seis fichas
+C 0x64E4 cuatro bombas
+C 0x64F1 cuatro fichas
+C 0x64F7 subestado 0: la bomba empieza a caer
+
+C 0x6541 los tres bits altos son la fila
+C 0x6547 estado 0x80: el bicho grande, volando
+C 0x6577 la prioridad se sube a 11
+C 0x6586 la bandera del trio a 2
+C 0x658F el bit 0 fuera: los rumbos van de dos en dos
+C 0x659D la segunda pareja de la tabla
+
+C 0x65D2 patron 0x6C: el paracaidas
+C 0x65F2 y la bandera del trio se apaga
+C 0x6613 la espera se apunta en 0xE018
+C 0x662F el `srl` quita el bit 0 y las tres rotaciones multiplican por cuatro
+
+C 0x663D cuatro bytes: la segunda pareja de la tabla
+C 0x6659 dos coordenadas
+C 0x667B los tres bits bajos del R: ocho entradas
+C 0x6686 hasta agotar la cuenta
+C 0x66B8 los cuatro bits bajos del R: dieciseis valores
+
+C 0x66E8 el patron es el rumbo por cuatro, mas 0x20
+C 0x66F2 el disparo sale con la cuenta puesta a 0xFF
+C 0x6705 la entrada 2 de la tabla de 0x605C: la que apunta y dispara
+C 0x6736 la entrada 4 de la tabla de 0x605C: la que va en horizontal
+
+C 0x6747 el 0x24 mira al otro lado
+C 0x6769 la entrada 5 de la tabla de 0x605C: la que va en onda
+C 0x676C esta repasa cada dieciseis fotogramas
+C 0x679B los cuatro bits bajos del R: dieciseis valores
+C 0x67AA los tres dibujos del helicoptero: 0x28, 0x24 y 0x20
+
+C 0x67C9 esta repasa cada dieciseis fotogramas
+C 0x67CE los cuatro bits bajos del R: dieciseis pasos
+C 0x67DA el patron es el rumbo por cuatro, mas 0x20
+C 0x6810 el bit 1 puesto: este dispara
+C 0x681C y por la mitad de abajo, en diagonal
+
+C 0x682E el rumbo 4 es hacia abajo
+C 0x6845 seis fichas
+C 0x684E diez bytes por ficha
+C 0x6851 hasta agotar las seis

@@ -4637,7 +4637,7 @@ CHOQUE_BOMBA_SIGUIENTE:
 	pop hl			;5d81
 	call SUMA_4_A_HL		;5d82   ; cuatro bytes por sprite
 	pop bc			;5d85
-	djnz CHOQUE_CON_UNA_BOMBA		;5d86
+	djnz CHOQUE_CON_UNA_BOMBA		;5d86   ; cuatro bombas
 	jp CHOQUE_FIN		;5d88
 CHOQUE_CON_LOS_MISILES_2:
 	call LEE_EPOCA		;5d8b   ; y misiles de la 3 en adelante; en la 2 no hay nada de esto
@@ -4645,7 +4645,7 @@ CHOQUE_CON_LOS_MISILES_2:
 	jp c,CHOQUE_FIN		;5d90
 	ld de,0e2a0h		;5d93
 	ld hl,0e3ach		;5d96
-	ld b,004h		;5d99
+	ld b,004h		;5d99   ; cuatro misiles
 CHOQUE_MISIL_BUCLE:
 	push bc			;5d9b   ; los cuatro misiles, uno a uno
 	push hl			;5d9c
@@ -4678,7 +4678,7 @@ MISIL_TOCADO_PUNTOS:
 	jr CHOQUE_FIN		;5dc8
 CHOQUE_MISIL_SIGUIENTE:
 	pop hl			;5dca   ; nueve por misil
-	call SUMA_9_A_HL		;5dcb
+	call SUMA_9_A_HL		;5dcb   ; nueve bytes por misil
 	ex de,hl			;5dce
 	pop hl			;5dcf
 	call SUMA_4_A_HL		;5dd0
@@ -4688,7 +4688,7 @@ CHOQUE_FIN:
 	exx			;5dd6
 CHOQUE_DISPARO_SIGUIENTE:
 	pop hl			;5dd7   ; el siguiente de los ocho disparos
-	call SUMA_4_A_HL		;5dd8
+	call SUMA_4_A_HL		;5dd8   ; cuatro bytes por ficha de disparo
 	pop bc			;5ddb
 	dec b			;5ddc
 	jp nz,CHOQUES_DE_UN_DISPARO		;5ddd
@@ -4696,7 +4696,7 @@ CHOQUE_DISPARO_SIGUIENTE:
 MATA_A_TODOS:		; Al morir el bicho grande se lleva por delante a todo lo que hay en pantalla
 	ld de,0e2d0h		;5de1
 	ld hl,0e38ch		;5de4
-	ld b,006h		;5de7
+	ld b,006h		;5de7   ; seis fichas otra vez, como en 0x5C50
 MATA_A_TODOS_BUCLE:
 	push bc			;5de9   ; los siete aviones se van todos a la vez
 	push hl			;5dea
@@ -4720,17 +4720,17 @@ MATA_A_TODOS_BUCLE:
 	ld (hl),00ah		;5e06
 MATA_A_TODOS_SIGUIENTE:
 	pop hl			;5e08   ; el avion enemigo son diez bytes
-	call SUMA_10_A_HL		;5e09
+	call SUMA_10_A_HL		;5e09   ; diez bytes por ficha
 	ex de,hl			;5e0c
 	pop hl			;5e0d
 	call SUMA_4_A_HL		;5e0e
 	pop bc			;5e11
-	djnz MATA_A_TODOS_BUCLE		;5e12
+	djnz MATA_A_TODOS_BUCLE		;5e12   ; tantas fichas como diga B
 	ld hl,0e3a8h		;5e14   ; y los doce sprites de todo lo demas, fuera de la pantalla
-	ld b,00ch		;5e17
+	ld b,00ch		;5e17   ; doce sprites
 APAGA_LOS_DEMAS_SPRITES:
 	ld (hl),0d1h		;5e19
-	call SUMA_4_A_HL		;5e1b
+	call SUMA_4_A_HL		;5e1b   ; cuatro bytes por atributo
 	djnz APAGA_LOS_DEMAS_SPRITES		;5e1e
 	ret			;5e20
 CHOQUE_CON_EL_PASAJERO:		; Recogerlo son quinientos puntos
@@ -4751,8 +4751,8 @@ CHOQUE_CON_EL_PASAJERO:		; Recogerlo son quinientos puntos
 	pop hl			;5e38
 	ret nc			;5e39
 	xor a			;5e3a
-	ld (de),a			;5e3b
-	ld (hl),0d1h		;5e3c
+	ld (de),a			;5e3b   ; el pasajero desaparece de la ficha
+	ld (hl),0d1h		;5e3c   ; y su sprite se va a Y=0xD1
 	ld bc,00500h		;5e3e   ; y recoger al pasajero, otros quinientos
 	call SUMA_PUNTOS		;5e41
 	ld a,(0e029h)		;5e44   ; y si el canal 2 lleva algo mas urgente, se recoge sin sonido
@@ -4763,7 +4763,7 @@ CHOQUE_CON_EL_PASAJERO:		; Recogerlo son quinientos puntos
 	cp 008h		;5e4e
 	ret c			;5e50
 PASAJERO_SONIDO:
-	ld (hl),008h		;5e51
+	ld (hl),008h		;5e51   ; la prioridad se sube a 8
 	ld hl,07e4dh		;5e53
 	ld (0e028h),hl		;5e56
 	ret			;5e59
@@ -4779,7 +4779,7 @@ CHOQUE_DEL_JUGADOR:		; Mira si el avion del jugador toca algo
 	ld e,(hl)			;5e68
 	ld a,e			;5e69
 	and 01fh		;5e6a   ; la casilla del bicho, pasada a pixeles, con medio caracter de correccion
-	rlca			;5e6c
+	rlca			;5e6c   ; tres rotaciones: la columna por ocho
 	rlca			;5e6d
 	rlca			;5e6e
 	add a,008h		;5e6f   ; y medio caracter mas para caer en el centro de la casilla
@@ -4807,7 +4807,7 @@ CHOQUE_DEL_JUGADOR:		; Mira si el avion del jugador toca algo
 	inc hl			;5e94
 	ld (hl),d			;5e95
 	inc hl			;5e96
-	ld (hl),010h		;5e97
+	ld (hl),010h		;5e97   ; patron 0x10 y color 8: la explosion gorda
 	inc hl			;5e99
 	ld (hl),008h		;5e9a
 	push hl			;5e9c
@@ -4815,7 +4815,7 @@ CHOQUE_DEL_JUGADOR:		; Mira si el avion del jugador toca algo
 	pop hl			;5ea0
 	cp 005h		;5ea1
 	jr nz,CHOQUE_JUGADOR_SIGUIENTE		;5ea3
-	ld (hl),00ah		;5ea5
+	ld (hl),00ah		;5ea5   ; en la epoca 5 la explosion va de amarillo
 CHOQUE_JUGADOR_SIGUIENTE:
 	inc hl			;5ea7   ; el segundo sprite de la explosion del avion
 	ld (hl),e			;5ea8
@@ -4839,7 +4839,7 @@ CHOQUE_JUGADOR_MUERE:
 	ld d,l			;5ec5
 	ld e,h			;5ec6
 	ld hl,06909h		;5ec7   ; y el bicho se borra de la tabla de nombres
-	ld c,004h		;5eca
+	ld c,004h		;5eca   ; cuatro filas de bloque
 	call PINTA_BLOQUE_EN_NOMBRES		;5ecc
 	ld a,001h		;5ecf
 	ld (0e052h),a		;5ed1   ; 0xE052 avisa de que la partida se ha acabado
@@ -4849,7 +4849,7 @@ CHOQUE_JUGADOR_FIN:
 CHOQUE_CON_LOS_AVIONES:		; El avion del jugador contra los siete aviones de la epoca
 	ld de,0e2d0h		;5ed8
 	ld hl,0e38ch		;5edb
-	ld b,006h		;5ede
+	ld b,006h		;5ede   ; seis fichas de avion
 CHOQUE_CON_UN_AVION:
 	push hl			;5ee0
 	push de			;5ee1
@@ -4869,14 +4869,14 @@ CHOQUE_CON_UN_AVION:
 	pop de			;5ef8
 	pop hl			;5ef9
 	ld a,000h		;5efa
-	ld (de),a			;5efc
+	ld (de),a			;5efc   ; el avion desaparece de su ficha
 	ld a,0d1h		;5efd
-	ld (hl),a			;5eff
+	ld (hl),a			;5eff   ; y su sprite se va a Y=0xD1
 	jp CHOQUE_MISIL_SIGUE		;5f00
 CHOQUE_AVION_SIGUE:
 	pop bc			;5f03   ; diez bytes por ficha de avion
 	pop hl			;5f04
-	call SUMA_10_A_HL		;5f05
+	call SUMA_10_A_HL		;5f05   ; diez bytes por ficha
 	ex de,hl			;5f08
 	pop hl			;5f09
 	call SUMA_4_A_HL		;5f0a
@@ -4885,7 +4885,7 @@ CHOQUE_AVION_SIGUE:
 CHOQUE_CON_LOS_DISPAROS_ENEMIGOS:
 	ld de,0e270h		;5f10
 	ld hl,0e3bch		;5f13
-	ld b,006h		;5f16
+	ld b,006h		;5f16   ; seis disparos enemigos
 CHOQUE_CON_UN_DISPARO_ENEMIGO:
 	push bc			;5f18   ; y ninguno con el estado a cero
 	push hl			;5f19
@@ -4907,10 +4907,10 @@ CHOQUE_DISPARO_ENEMIGO_SIGUIENTE:
 	pop hl			;5f31
 	call SUMA_4_A_HL		;5f32
 	pop bc			;5f35
-	djnz CHOQUE_CON_UN_DISPARO_ENEMIGO		;5f36
+	djnz CHOQUE_CON_UN_DISPARO_ENEMIGO		;5f36   ; seis disparos
 	ld de,0e260h		;5f38
 	ld hl,0e3ach		;5f3b
-	ld b,004h		;5f3e
+	ld b,004h		;5f3e   ; cuatro fichas de lo que suelta la epoca
 CHOQUE_CON_EL_PASAJERO_2:
 	push bc			;5f40
 	push hl			;5f41
@@ -4934,10 +4934,10 @@ CHOQUE_PASAJERO_2:
 	pop hl			;5f5b   ; los cuatro bytes del sprite
 	call SUMA_4_A_HL		;5f5c
 	pop bc			;5f5f
-	djnz CHOQUE_CON_EL_PASAJERO_2		;5f60
+	djnz CHOQUE_CON_EL_PASAJERO_2		;5f60   ; cuatro fichas
 	ld de,0e2a0h		;5f62
 	ld hl,0e3ach		;5f65
-	ld b,004h		;5f68
+	ld b,004h		;5f68   ; cuatro misiles
 CHOQUE_PASAJERO_SIGUE:
 	push bc			;5f6a
 	push hl			;5f6b
@@ -4960,18 +4960,18 @@ CHOQUE_CON_LOS_MISILES:
 	pop hl			;5f86
 	call SUMA_4_A_HL		;5f87
 	pop bc			;5f8a
-	djnz CHOQUE_PASAJERO_SIGUE		;5f8b
+	djnz CHOQUE_PASAJERO_SIGUE		;5f8b   ; cuatro misiles
 	ret			;5f8d
 CHOQUE_CON_UN_MISIL:
 	pop de			;5f8e   ; los cuatro misiles contra el avion
 	pop hl			;5f8f
 	pop bc			;5f90
 	xor a			;5f91
-	ld (de),a			;5f92
+	ld (de),a			;5f92   ; el misil desaparece de su ficha
 	ld a,0d1h		;5f93
 	ld (hl),a			;5f95
 	ld a,008h		;5f96
-	ld (0e382h),a		;5f98
+	ld (0e382h),a		;5f98   ; patron 8: el primer paso de la explosion
 CHOQUE_MISIL_SIGUE:
 	ld hl,0e145h		;5f9b   ; y al chocar con un misil, el avion se estrella
 	ld (hl),0c4h		;5f9e   ; el estado 0xC0 arranca la explosion del avion
@@ -4992,7 +4992,7 @@ MUERE_EL_JUGADOR:		; Sonido, explosion y el estado 0xC0
 	ld (0e028h),hl		;5fbc
 	ld hl,07d57h		;5fbf   ; el sonido del choque, con prioridad 3
 	ld (0e030h),hl		;5fc2
-	ld a,002h		;5fc5
+	ld a,002h		;5fc5   ; los tres canales, con prioridad 2
 	ld (0e027h),a		;5fc7
 	ld (0e02fh),a		;5fca
 	ld (0e037h),a		;5fcd
@@ -5009,10 +5009,10 @@ MIRA_SI_LA_FICHA_ESTA_VIVA:		; Devuelve carry y la posicion si la ficha de DE es
 	push de			;5fdc
 	exx			;5fdd
 	pop de			;5fde
-	scf			;5fdf
+	scf			;5fdf   ; y con carry, la ficha esta viva
 	ret			;5fe0
 FICHA_LIBRE:
-	or a			;5fe1
+	or a			;5fe1   ; y si no, carry a cero
 	ret			;5fe2
 
 ; ----------------------------------------------------------------------
@@ -5086,7 +5086,7 @@ DATA_ret_suelto:
 PASO_DE_LOS_ACTORES_2:
 	ld hl,0e2d0h		;6013   ; las siete fichas de 0xE2D0, una a una
 	ld de,0e38ch		;6016
-	ld b,007h		;6019
+	ld b,007h		;6019   ; siete fichas de actor
 PASO_DE_UN_ACTOR:
 	push hl			;601b
 	push de			;601c
@@ -5099,7 +5099,7 @@ PASO_DE_UN_ACTOR:
 	cp 0c0h		;6028   ; 0xC0 es el actor reventando: se le acaba la cuenta y desaparece
 	jr z,ACTOR_MIRA_TIEMPO		;602a
 	ld a,(hl)			;602c
-	and 007h		;602d
+	and 007h		;602d   ; los tres bits bajos son la cuenta de la explosion
 	jr z,ACTOR_ARRANCA		;602f
 	jr ACTOR_BAJA_TIEMPO		;6031
 ACTOR_ARRANCA:
@@ -5123,7 +5123,7 @@ ACTOR_BAJA_CUENTA:
 	jr $+48		;6049
 ACTOR_MIRA_TIEMPO:
 	ld a,(hl)			;604b
-	and 007h		;604c
+	and 007h		;604c   ; los tres bits bajos son la cuenta
 	jr z,ACTOR_REARMA		;604e
 ACTOR_BAJA_TIEMPO:
 	dec (hl)			;6050
@@ -5132,7 +5132,7 @@ ACTOR_REARMA:
 	ld (hl),0a4h		;6053   ; estado 0xA4: vuelve a la vida con la cuenta puesta
 	inc de			;6055
 	inc de			;6056
-	ld a,00ch		;6057
+	ld a,00ch		;6057   ; patron 0x0C: el primer dibujo del actor
 	ld (de),a			;6059
 	jr $+31		;605a
 
@@ -5167,7 +5167,7 @@ ACTOR_SIGUIENTE:
 	pop de			;607a
 	pop hl			;607b
 	call SIGUIENTE_SPRITE		;607c   ; cada ficha son 16 bytes, y su sprite cuatro
-	call SUMA_10_A_HL		;607f
+	call SUMA_10_A_HL		;607f   ; diez bytes por ficha
 	dec b			;6082
 	jp nz,PASO_DE_UN_ACTOR		;6083
 	ret			;6086
@@ -5179,7 +5179,7 @@ COMPORTAMIENTO_1:		; Cambia de rumbo al azar cuando se le acaba la cuenta
 	ld h,b			;6087   ; COMPORTAMIENTO 1: el byte 2 es la cuenta atras hasta el siguiente giro
 	ld l,c			;6088
 	inc hl			;6089
-	dec (hl)			;608a
+	dec (hl)			;608a   ; y mientras no llegue a cero, no gira
 	jr nz,COMPORTAMIENTO_1_MUEVE		;608b
 	dec hl			;608d
 	dec hl			;608e
@@ -5196,13 +5196,13 @@ COMPORTAMIENTO_1:		; Cambia de rumbo al azar cuando se le acaba la cuenta
 COMPORTAMIENTO_1_RUMBO:
 	dec (hl)			;609a   ; y sin el bit, baja uno: gira un octavo a la izquierda
 	ld a,(hl)			;609b
-	and 007h		;609c
+	and 007h		;609c   ; ocho rumbos: los tres bits de abajo
 	ld c,a			;609e
 	ld (hl),a			;609f
 	dec hl			;60a0
 	push af			;60a1
 	ld a,r		;60a2   ; la cuenta nueva sale del registro R: entre 8 y 23 fotogramas
-	and 00fh		;60a4
+	and 00fh		;60a4   ; los cuatro bits bajos del R: dieciseis valores
 	add a,008h		;60a6
 	ld (hl),a			;60a8
 	pop af			;60a9
@@ -5254,7 +5254,7 @@ COMPORTAMIENTO_2_PASO:
 	dec de			;60de
 	dec de			;60df
 	sub 020h		;60e0
-	rrca			;60e2
+	rrca			;60e2   ; dos rotaciones y tres bits: el camino contrario al de 0x60AC
 	rrca			;60e3
 	and 007h		;60e4
 	ld c,a			;60e6
@@ -5285,11 +5285,11 @@ COMPORTAMIENTO_3:		; Espera, apunta al centro y dispara
 COMPORTAMIENTO_3_APUNTA:
 	call DIRECCION_AL_CENTRO		;610a   ; apunta al centro y mira si ya vuela hacia alli
 	inc hl			;610d
-	cp (hl)			;610e
+	cp (hl)			;610e   ; si ya apunta al centro, dispara
 	jr nz,COMPORTAMIENTO_4_GIRA		;610f
 	push hl			;6111
 	inc hl			;6112
-	ld bc,001ffh		;6113
+	ld bc,001ffh		;6113   ; el disparo sale con la cuenta puesta a 0xFF
 	call PON_DISPARO_ENEMIGO		;6116   ; y este dispara al llegar
 	pop hl			;6119
 	dec hl			;611a
@@ -5317,7 +5317,7 @@ COMPORTAMIENTO_4:
 	jr z,COMPORTAMIENTO_4_APUNTA		;6134
 	bit 7,(hl)		;6136
 	jr nz,COMPORTAMIENTO_4_ESPERA		;6138
-	dec (hl)			;613a
+	dec (hl)			;613a   ; dos bajadas por vuelta: el giro va al doble
 	dec (hl)			;613b
 	jr COMPORTAMIENTO_3_SIGUE		;613c
 COMPORTAMIENTO_4_ESPERA:
@@ -5335,7 +5335,7 @@ COMPORTAMIENTO_4_GIRA:
 	inc hl			;614c
 	ld a,(hl)			;614d
 	inc a			;614e
-	and 007h		;614f
+	and 007h		;614f   ; ocho rumbos: los tres bits de abajo
 	ld (hl),a			;6151
 COMPORTAMIENTO_4_MUEVE:
 	dec hl			;6152   ; mientras gira sigue avanzando, de dos en dos
@@ -5347,7 +5347,7 @@ COMPORTAMIENTO_4_MUEVE:
 	dec de			;615b
 	dec de			;615c
 	ld a,c			;615d
-	rlca			;615e
+	rlca			;615e   ; el patron del sprite es el rumbo por cuatro, mas 0x20
 	rlca			;615f
 	add a,020h		;6160
 	ld (de),a			;6162
@@ -5355,7 +5355,7 @@ COMPORTAMIENTO_4_MUEVE:
 COMPORTAMIENTO_4_DISPARA:
 	push hl			;6164
 	inc hl			;6165
-	ld bc,001ffh		;6166
+	ld bc,001ffh		;6166   ; el disparo sale con la cuenta puesta a 0xFF
 	call PON_DISPARO_ENEMIGO		;6169
 	pop hl			;616c
 	dec hl			;616d
@@ -5386,7 +5386,7 @@ COMPORTAMIENTO_5:
 	inc hl			;618c
 	dec (hl)			;618d   ; COMPORTAMIENTO 5: cada cinco fotogramas repasa lo que tenga pendiente
 	jr nz,COMPORTAMIENTO_5_MUEVE		;618e
-	ld (hl),005h		;6190
+	ld (hl),005h		;6190   ; y la cuenta vuelve a cinco
 	dec hl			;6192
 	dec hl			;6193
 	ld b,(hl)			;6194
@@ -5401,7 +5401,7 @@ COMPORTAMIENTO_5_MUEVE:
 	ld c,001h		;61a1   ; este solo se mueve en horizontal, un pixel por fotograma
 	bit 0,b		;61a3
 	jr nz,COMPORTAMIENTO_5_FIN		;61a5
-	ld c,0ffh		;61a7
+	ld c,0ffh		;61a7   ; y hacia la izquierda, un pixel al reves
 COMPORTAMIENTO_5_FIN:
 	inc de			;61a9   ; este solo toca la X: es el que va en horizontal
 	ld a,(de)			;61aa
@@ -5420,11 +5420,11 @@ COMPORTAMIENTO_6:
 	inc hl			;61b8
 	dec (hl)			;61b9   ; COMPORTAMIENTO 6: igual de cinco en cinco, pero este va en onda
 	jr nz,COMPORTAMIENTO_6_MUEVE		;61ba
-	ld (hl),005h		;61bc
+	ld (hl),005h		;61bc   ; y la cuenta vuelve a cinco
 	dec hl			;61be
 	dec hl			;61bf
 	ld b,(hl)			;61c0
-	ld c,002h		;61c1
+	ld c,002h		;61c1   ; la direccion 2 es a la derecha y la 6 a la izquierda
 	bit 0,b		;61c3
 	jr z,COMPORTAMIENTO_6_PASO		;61c5
 	ld c,006h		;61c7
@@ -5437,10 +5437,10 @@ COMPORTAMIENTO_6_MUEVE:
 	inc hl			;61cf
 	ld a,(hl)			;61d0   ; el byte 3 es el paso de la onda, de 0 a 63
 	inc a			;61d1
-	and 03fh		;61d2
+	and 03fh		;61d2   ; los seis bits bajos: 64 pasos de onda
 	ld (hl),a			;61d4
 	ld hl,06322h		;61d5   ; y la onda esta tabulada: 64 parejas de (cuanto baja, cuanto avanza)
-	rlca			;61d8
+	rlca			;61d8   ; dos bytes por paso
 	call SUMA_A_HL		;61d9
 	ex de,hl			;61dc
 	ld a,(de)			;61dd
@@ -5451,7 +5451,7 @@ COMPORTAMIENTO_6_MUEVE:
 	ld a,(de)			;61e2
 	bit 0,b		;61e3   ; el bit 0 del estado dice si la onda avanza a la derecha o a la izquierda
 	jr nz,COMPORTAMIENTO_6_FIN		;61e5
-	neg		;61e7
+	neg		;61e7   ; el `neg` da la vuelta al paso
 COMPORTAMIENTO_6_FIN:
 	add a,(hl)			;61e9   ; y este suma la Y de la onda
 	ld (hl),a			;61ea
@@ -5494,7 +5494,7 @@ COMPORTAMIENTO_7_PASO:
 	ex de,hl			;621d
 	inc hl			;621e
 	inc hl			;621f
-	ld a,028h		;6220
+	ld a,028h		;6220   ; los dos dibujos de perfil, otra vez
 	bit 0,c		;6222
 	jr z,COMPORTAMIENTO_7_GIRA		;6224
 	ld a,024h		;6226
@@ -5525,7 +5525,7 @@ COMPORTAMIENTO_7_RUMBO:
 	cp 002h		;6243
 	jr nc,COMPORTAMIENTO_7_MENOS		;6245
 COMPORTAMIENTO_7_SIGUE:
-	ld a,0ffh		;6247
+	ld a,0ffh		;6247   ; el 0xFF es -1: hacia atras
 	jr COMPORTAMIENTO_7_PASO2		;6249
 COMPORTAMIENTO_7_MIRA:
 	dec a			;624b   ; en el tramo 1 hay cuatro entradas que siguen derechas
@@ -5540,7 +5540,7 @@ COMPORTAMIENTO_7_MIRA:
 	cp 002h		;625b
 	jr nz,COMPORTAMIENTO_7_MENOS		;625d
 COMPORTAMIENTO_7_MAS:
-	ld a,001h		;625f
+	ld a,001h		;625f   ; y el 1 es hacia adelante
 	jr COMPORTAMIENTO_7_PASO2		;6261
 COMPORTAMIENTO_7_MENOS:
 	inc hl			;6263   ; las entradas 4 y 5 se van al tope
@@ -5574,7 +5574,7 @@ COMPORTAMIENTO_7_SONIDO:
 	cp 006h		;6289
 	jr c,COMPORTAMIENTO_7_TOPE		;628b
 COMPORTAMIENTO_7_FIN:
-	ld a,001h		;628d
+	ld a,001h		;628d   ; un pixel por fotograma
 COMPORTAMIENTO_7_MUEVE:
 	add a,(hl)			;628f   ; los tramos pares corren la X
 	ld (hl),a			;6290
@@ -5598,8 +5598,8 @@ COMPORTAMIENTO_8:
 	inc hl			;62a3
 	ld a,(hl)			;62a4   ; el byte 3 es el paso, de 0 a 15, y sube uno cada vez
 	inc (hl)			;62a5
-	and 00fh		;62a6
-	rlca			;62a8
+	and 00fh		;62a6   ; los cuatro bits bajos: dieciseis pasos
+	rlca			;62a8   ; dos bytes por entrada
 	push hl			;62a9
 	ld hl,062e2h		;62aa   ; una de las dos tablas de giro, a cara o cruz con el registro R
 	push af			;62ad
@@ -5620,11 +5620,11 @@ COMPORTAMIENTO_8_PASO:
 	inc hl			;62c1
 	ld a,(hl)			;62c2   ; y el segundo se le suma a la direccion: +1 o -1, o sea un octavo
 	add a,c			;62c3
-	and 007h		;62c4
+	and 007h		;62c4   ; ocho rumbos: los tres bits de abajo
 	ld (hl),a			;62c6
 	inc de			;62c7
 	inc de			;62c8
-	rlca			;62c9
+	rlca			;62c9   ; el patron es el rumbo por cuatro, mas 0x20
 	rlca			;62ca
 	add a,020h		;62cb
 	ld (de),a			;62cd
@@ -5641,7 +5641,7 @@ COMPORTAMIENTO_8_FIN:
 	ld b,(hl)			;62d7
 	call ACTOR_ATACA		;62d8
 	ld (hl),b			;62db
-	ld b,001h		;62dc
+	ld b,001h		;62dc   ; este vuela de uno en uno
 	call MUEVE_SPRITE		;62de
 	ret			;62e1
 
@@ -5799,14 +5799,14 @@ MISIL_BUSCA_FICHA:
 	or a			;63bc
 	jr z,MISIL_PON		;63bd
 	call SIGUIENTE_SPRITE		;63bf
-	call SUMA_9_A_HL		;63c2
-	djnz MISIL_BUSCA_FICHA		;63c5
+	call SUMA_9_A_HL		;63c2   ; nueve bytes por ficha de misil
+	djnz MISIL_BUSCA_FICHA		;63c5   ; cuatro fichas
 	pop bc			;63c7
 	pop de			;63c8
 	pop hl			;63c9
 	ret			;63ca
 MISIL_PON:		; Monta la ficha del misil en 0xE2A0 y su sprite
-	ld (hl),083h		;63cb
+	ld (hl),083h		;63cb   ; estado 0x83: el misil nace volando
 	inc hl			;63cd
 	ld (hl),000h		;63ce
 	inc hl			;63d0
@@ -5833,7 +5833,7 @@ MISIL_PON:		; Monta la ficha del misil en 0xE2A0 y su sprite
 	cp 005h		;63e8   ; en la epoca 5 el misil se pinta de otro color
 	ld a,001h		;63ea
 	jr nz,MISIL_COLOR		;63ec
-	ld a,00ah		;63ee
+	ld a,00ah		;63ee   ; el color 10 en vez del 1
 MISIL_COLOR:
 	ld (de),a			;63f0
 	ld a,(0e031h)		;63f1   ; el sonido solo suena si el canal 3 esta libre o con algo menos urgente
@@ -5844,7 +5844,7 @@ MISIL_COLOR:
 	cp 00ch		;63fb
 	jr c,ACTOR_ATACA_SALIDA		;63fd
 MISIL_SONIDO:
-	ld (hl),00ch		;63ff
+	ld (hl),00ch		;63ff   ; la prioridad se sube a 12
 	ld hl,07ebdh		;6401
 	ld (0e030h),hl		;6404
 ACTOR_ATACA_SALIDA:
@@ -5893,7 +5893,7 @@ ACTOR_DISPARA_MIRA:
 	ret			;6444
 ACTOR_DISPARA_VALE:
 	pop bc			;6445
-	res 1,b		;6446
+	res 1,b		;6446   ; la bandera se apaga: cada disparo pide que se la vuelvan a poner
 	push hl			;6448
 	push de			;6449
 	push bc			;644a
@@ -5905,8 +5905,8 @@ ACTOR_DISPARA_SIGUIENTE:
 	or a			;6454
 	jr z,ACTOR_DISPARA_PON		;6455
 	call SIGUIENTE_SPRITE		;6457
-	call SUMA_7_A_HL		;645a
-	djnz ACTOR_DISPARA_SIGUIENTE		;645d
+	call SUMA_7_A_HL		;645a   ; siete bytes por ficha de disparo
+	djnz ACTOR_DISPARA_SIGUIENTE		;645d   ; seis fichas
 	pop bc			;645f
 	pop de			;6460
 	pop hl			;6461
@@ -5923,7 +5923,7 @@ ACTOR_DISPARA_PON:
 	push hl			;646e
 	exx			;646f
 	pop hl			;6470
-	ld bc,001ffh		;6471
+	ld bc,001ffh		;6471   ; el disparo sale con la cuenta puesta a 0xFF
 	call PON_DISPARO_ENEMIGO		;6474   ; el disparo enemigo sale apuntando al centro, y se mueve solo
 	exx			;6477
 	pop hl			;6478
@@ -5935,11 +5935,11 @@ ACTOR_DISPARA_PON:
 	ld a,(hl)			;647e
 	ld (de),a			;647f
 	inc de			;6480
-	ld a,060h		;6481
+	ld a,060h		;6481   ; el patron 0x60 es el del disparo enemigo
 	ld (de),a			;6483
 	ld hl,07ee0h		;6484   ; y con su sonido propio
 	ld (0e020h),hl		;6487
-	ld a,005h		;648a
+	ld a,005h		;648a   ; prioridad 5 en el canal 1
 	ld (0e027h),a		;648c
 	pop de			;648f
 	pop hl			;6490
@@ -5950,7 +5950,7 @@ SUELTA_LAS_BOMBAS:		; Solo en la epoca 1: el avion que lleva la bandera de bomba
 	ret nz			;6496
 	ld hl,0e2d0h		;6497
 	ld de,0e38ch		;649a
-	ld b,006h		;649d
+	ld b,006h		;649d   ; seis fichas de avion
 BOMBA_MIRA_ACTOR:
 	ld a,(hl)			;649f   ; la bandera de llevar bomba es el bit 2 del estado
 	and 0e4h		;64a0
@@ -5958,8 +5958,8 @@ BOMBA_MIRA_ACTOR:
 	jr z,BOMBA_MIRA_ALTURA		;64a4
 BOMBA_SIGUIENTE_ACTOR:
 	call SIGUIENTE_SPRITE		;64a6
-	call SUMA_10_A_HL		;64a9
-	djnz BOMBA_MIRA_ACTOR		;64ac
+	call SUMA_10_A_HL		;64a9   ; diez bytes por ficha
+	djnz BOMBA_MIRA_ACTOR		;64ac   ; seis fichas
 	ret			;64ae
 BOMBA_MIRA_ALTURA:
 	ld a,(de)			;64af   ; tiene que estar en la franja de arriba, entre las alturas 0x10 y 0x30
@@ -5993,7 +5993,7 @@ BOMBA_BUSCA_FICHA:
 	push de			;64dd
 	ld hl,0e260h		;64de
 	ld de,0e3ach		;64e1
-	ld b,004h		;64e4
+	ld b,004h		;64e4   ; cuatro bombas
 BOMBA_FICHA_SIGUIENTE:
 	ld a,(hl)			;64e6   ; hasta cuatro bombas a la vez
 	and 0e0h		;64e7
@@ -6002,13 +6002,13 @@ BOMBA_FICHA_SIGUIENTE:
 	inc hl			;64ec
 	inc hl			;64ed
 	call SIGUIENTE_SPRITE		;64ee
-	djnz BOMBA_FICHA_SIGUIENTE		;64f1
+	djnz BOMBA_FICHA_SIGUIENTE		;64f1   ; cuatro fichas
 	pop de			;64f3
 	ret			;64f4
 BOMBA_PON:
 	ld (hl),c			;64f5
 	inc hl			;64f6
-	ld (hl),000h		;64f7
+	ld (hl),000h		;64f7   ; subestado 0: la bomba empieza a caer
 	pop hl			;64f9
 	ex de,hl			;64fa
 	ld a,(de)			;64fb
@@ -6059,11 +6059,11 @@ FASE_CUENTA:
 	ld h,078h		;653e
 FASE_SUELTA_BICHO:
 	ld a,l			;6540   ; el bicho sale por la columna 29, o sea pegado al borde derecho
-	and 0e0h		;6541
+	and 0e0h		;6541   ; los tres bits altos son la fila
 	or 01dh		;6543
 	ld l,a			;6545
 	ex de,hl			;6546
-	ld (hl),080h		;6547
+	ld (hl),080h		;6547   ; estado 0x80: el bicho grande, volando
 	inc hl			;6549
 	ld (hl),d			;654a
 	inc hl			;654b
@@ -6096,7 +6096,7 @@ FASE_BICHO_LISTO:
 	cp 00bh		;6573
 	jr c,FASE_SIGUE		;6575
 FASE_SONIDO:
-	ld (hl),00bh		;6577
+	ld (hl),00bh		;6577   ; la prioridad se sube a 11
 	ld hl,07e98h		;6579
 	ld (0e030h),hl		;657c
 FASE_SIGUE:
@@ -6104,20 +6104,20 @@ FASE_SIGUE:
 	ld a,020h		;6582
 	ld (de),a			;6584
 	inc de			;6585
-	ld a,002h		;6586
+	ld a,002h		;6586   ; la bandera del trio a 2
 	ld (de),a			;6588
 	inc de			;6589
 	xor a			;658a
 	ld (de),a			;658b
 	ld a,(0e146h)		;658c   ; la direccion del avion, sin el bit 0: ocho posibilidades
-	res 0,a		;658f
+	res 0,a		;658f   ; el bit 0 fuera: los rumbos van de dos en dos
 	push hl			;6591
 	ld hl,0688ah		;6592   ; de ahi sale la casilla por la que va a salir el trio
 	call SUMA_A_HL		;6595
 	ld a,r		;6598   ; y el registro R elige una de las dos de cada grupo
 	rrca			;659a
 	jr c,FASE_VELOCIDAD		;659b
-	inc hl			;659d
+	inc hl			;659d   ; la segunda pareja de la tabla
 	inc hl			;659e
 FASE_VELOCIDAD:
 	inc de			;659f   ; la casilla de salida se guarda en 0xE133 y 0xE134
@@ -6150,7 +6150,7 @@ FASE_MIRA_EPOCA:
 	jr nz,FASE_EPOCA_5		;65cb
 	ld a,080h		;65cd   ; el pasajero, en su ficha de 0xE2CE
 	ld (0e2ceh),a		;65cf
-	ld a,06ch		;65d2
+	ld a,06ch		;65d2   ; patron 0x6C: el paracaidas
 	ld (0e2cfh),a		;65d4
 	ld a,000h		;65d7   ; baja por el centro y desde arriba del todo
 	ld (0e3a8h),a		;65d9
@@ -6168,7 +6168,7 @@ FASE_EPOCA_5:
 	jr nz,FASE_ESPERA_2		;65ed
 	ld c,004h		;65ef   ; el tercero cierra el trio y deja cuatro puntos de espera, dos segundos y medio
 	dec hl			;65f1
-	ld (hl),000h		;65f2
+	ld (hl),000h		;65f2   ; y la bandera del trio se apaga
 	inc hl			;65f4
 FASE_ESPERA_2:
 	inc hl			;65f5
@@ -6196,7 +6196,7 @@ FASE_CUENTA_2:
 	ld e,a			;6611
 FASE_PASO_2:
 	ld a,c			;6612
-	ld (0e018h),a		;6613
+	ld (0e018h),a		;6613   ; la espera se apunta en 0xE018
 	jr FASE_ELIGE_FORMACION		;6616
 FASE_MIRA_HUECO:
 	ld hl,0e182h		;6618   ; sin trio en marcha, el enemigo sale suelto
@@ -6209,7 +6209,7 @@ FASE_HUECO_LIBRE:
 	ld (0e018h),a		;6626
 	ld hl,0689ch		;6629   ; la casilla de salida sale de la direccion en la que vuela el avion
 	ld a,(0e146h)		;662c
-	srl a		;662f
+	srl a		;662f   ; el `srl` quita el bit 0 y las tres rotaciones multiplican por cuatro
 	rlca			;6631
 	rlca			;6632
 	rlca			;6633
@@ -6217,7 +6217,7 @@ FASE_HUECO_LIBRE:
 	ld a,r		;6637   ; y a cara o cruz entre las dos de cada grupo
 	and 001h		;6639
 	jr z,FASE_COLOCA		;663b
-	call SUMA_4_A_HL		;663d
+	call SUMA_4_A_HL		;663d   ; cuatro bytes: la segunda pareja de la tabla
 FASE_COLOCA:
 	ld b,002h		;6640
 FASE_COLOCA_2:
@@ -6239,7 +6239,7 @@ FASE_FORMACION:
 FASE_FORMACION_2:
 	inc hl			;6657
 	ld e,a			;6658
-	djnz FASE_COLOCA_2		;6659
+	djnz FASE_COLOCA_2		;6659   ; dos coordenadas
 FASE_ELIGE_FORMACION:
 	call LEE_EPOCA		;665b   ; cada epoca tiene su lista de que bichos salen
 	ld hl,068dch		;665e   ; la lista de la epoca 1
@@ -6257,7 +6257,7 @@ FASE_ELIGE_FORMACION:
 	ld hl,06900h		;6676
 FASE_FORMACION_PON:
 	ld a,r		;6679   ; y de las ocho entradas de la lista se coge una al azar
-	and 007h		;667b
+	and 007h		;667b   ; los tres bits bajos del R: ocho entradas
 	jr z,FASE_FORMACION_FIN		;667d
 	ld b,a			;667f
 FASE_FORMACION_SIGUE:
@@ -6265,7 +6265,7 @@ FASE_FORMACION_SIGUE:
 	cp 0ffh		;6681
 	jr z,FASE_FORMACION_FIN		;6683
 	inc hl			;6685
-	djnz FASE_FORMACION_SIGUE		;6686
+	djnz FASE_FORMACION_SIGUE		;6686   ; hasta agotar la cuenta
 FASE_FORMACION_FIN:
 	ld a,(hl)			;6688   ; el 0xFF cierra la lista: si se ha pasado, se vuelve una atras
 	cp 0ffh		;6689
@@ -6312,7 +6312,7 @@ ARRANQUE_1:
 	ld (hl),000h		;66b3   ; comportamiento 0, o sea el primero de los ocho
 	inc hl			;66b5
 	ld a,r		;66b6   ; y la primera cuenta, entre 8 y 23 fotogramas
-	and 00fh		;66b8
+	and 00fh		;66b8   ; los cuatro bits bajos del R: dieciseis valores
 	add a,008h		;66ba
 	ld (hl),a			;66bc
 ARRANQUE_2:
@@ -6353,14 +6353,14 @@ ARRANQUE_3:
 	ld (de),a			;66e5
 	inc de			;66e6
 	pop af			;66e7
-	rlca			;66e8
+	rlca			;66e8   ; el patron es el rumbo por cuatro, mas 0x20
 	rlca			;66e9
 	add a,020h		;66ea
 	ld (de),a			;66ec
 	dec de			;66ed
 	dec de			;66ee
 	call DIRECCION_AL_CENTRO		;66ef   ; el disparo sale ya, apuntando a donde esta el avion
-	ld bc,001ffh		;66f2
+	ld bc,001ffh		;66f2   ; el disparo sale con la cuenta puesta a 0xFF
 	call PON_DISPARO_ENEMIGO		;66f5
 	ret			;66f8
 ARRANQUE_4:
@@ -6372,7 +6372,7 @@ ARRANQUE_4:
 	pop bc			;6702
 	ld (hl),b			;6703
 	inc hl			;6704
-	ld (hl),002h		;6705
+	ld (hl),002h		;6705   ; la entrada 2 de la tabla de 0x605C: la que apunta y dispara
 	inc hl			;6707
 	ld (hl),000h		;6708   ; cuenta a cero: apunta en el primer fotograma
 	jp ARRANQUE_2		;670a
@@ -6404,7 +6404,7 @@ ARRANQUE_6_PASO:
 	pop bc			;6733
 	ld (hl),b			;6734
 	inc hl			;6735
-	ld (hl),004h		;6736
+	ld (hl),004h		;6736   ; la entrada 4 de la tabla de 0x605C: la que va en horizontal
 	inc hl			;6738
 	ld (hl),010h		;6739   ; este repasa cada dieciseis fotogramas
 ARRANQUE_6_PON:
@@ -6417,7 +6417,7 @@ ARRANQUE_6_PON:
 	ld a,028h		;6741   ; y elige uno de los dos dibujos del helicoptero segun el lado
 	bit 0,b		;6743
 	jr z,ARRANQUE_6_FIN		;6745
-	ld a,024h		;6747
+	ld a,024h		;6747   ; el 0x24 mira al otro lado
 ARRANQUE_6_FIN:
 	ld (hl),a			;6749
 	ret			;674a
@@ -6442,9 +6442,9 @@ ARRANQUE_7_PON:
 	pop bc			;6766
 	ld (hl),b			;6767
 	inc hl			;6768
-	ld (hl),005h		;6769
+	ld (hl),005h		;6769   ; la entrada 5 de la tabla de 0x605C: la que va en onda
 	inc hl			;676b
-	ld (hl),010h		;676c
+	ld (hl),010h		;676c   ; esta repasa cada dieciseis fotogramas
 	inc hl			;676e
 	ld (hl),c			;676f
 	jp ARRANQUE_6_PON		;6770   ; y el resto lo hace el arranque del 6
@@ -6478,7 +6478,7 @@ ARRANQUE_COMUN:
 	ld (hl),c			;6797
 	inc hl			;6798
 	ld a,r		;6799   ; la primera cuenta, entre 16 y 31 fotogramas
-	and 00fh		;679b
+	and 00fh		;679b   ; los cuatro bits bajos del R: dieciseis valores
 	add a,010h		;679d
 	ld (hl),a			;679f
 	inc hl			;67a0
@@ -6490,7 +6490,7 @@ ARRANQUE_COMUN:
 	ld (hl),d			;67a7
 	inc hl			;67a8
 	ld a,c			;67a9
-	ld c,028h		;67aa
+	ld c,028h		;67aa   ; los tres dibujos del helicoptero: 0x28, 0x24 y 0x20
 	cp 006h		;67ac
 	jr nc,ARRANQUE_FIN		;67ae
 	ld c,024h		;67b0
@@ -6511,10 +6511,10 @@ ARRANQUE_TABLA:
 	inc hl			;67c5
 	ld (hl),007h		;67c6   ; comportamiento 7, el ultimo de los ocho
 	inc hl			;67c8
-	ld (hl),010h		;67c9
+	ld (hl),010h		;67c9   ; esta repasa cada dieciseis fotogramas
 	inc hl			;67cb
 	ld a,r		;67cc   ; y arranca en un punto cualquiera de la tabla
-	and 00fh		;67ce
+	and 00fh		;67ce   ; los cuatro bits bajos del R: dieciseis pasos
 	ld (hl),a			;67d0
 	inc hl			;67d1
 	ld (hl),c			;67d2
@@ -6525,7 +6525,7 @@ ARRANQUE_TABLA:
 	ld (hl),d			;67d7
 	inc hl			;67d8
 	ld a,c			;67d9
-	rlca			;67da
+	rlca			;67da   ; el patron es el rumbo por cuatro, mas 0x20
 	rlca			;67db
 	add a,020h		;67dc
 	ld (hl),a			;67de
@@ -6559,7 +6559,7 @@ ARRANQUE_POSICION:
 ARRANQUE_POSICION_2:
 	and 001h		;680c   ; y con el bicho, basta con que sea par
 	jr nz,ARRANQUE_POSICION_3		;680e
-	set 1,b		;6810
+	set 1,b		;6810   ; el bit 1 puesto: este dispara
 ARRANQUE_POSICION_3:
 	ld a,d			;6812   ; pegado al borde izquierdo se entra volando hacia la derecha
 	or a			;6813
@@ -6568,7 +6568,7 @@ ARRANQUE_POSICION_3:
 	ld a,e			;6818
 	cp 060h		;6819
 	ret nc			;681b
-	inc b			;681c
+	inc b			;681c   ; y por la mitad de abajo, en diagonal
 	ret			;681d
 ARRANQUE_POSICION_4:
 	cp 0afh		;681e   ; pegado al derecho, hacia la izquierda
@@ -6583,7 +6583,7 @@ ARRANQUE_POSICION_5:
 	ld a,e			;682a   ; por arriba se baja
 	or a			;682b
 	jr nz,ARRANQUE_POSICION_6		;682c
-	ld c,004h		;682e
+	ld c,004h		;682e   ; el rumbo 4 es hacia abajo
 	ld a,d			;6830
 	cp 060h		;6831
 	ret c			;6833
@@ -6600,14 +6600,14 @@ ARRANQUE_POSICION_7:
 	exx			;683e   ; busca una ficha libre entre las seis primeras
 	ld hl,0e2d0h		;683f
 	ld de,0e38ch		;6842
-	ld b,006h		;6845
+	ld b,006h		;6845   ; seis fichas
 ARRANQUE_POSICION_8:
 	ld a,(hl)			;6847
 	or a			;6848
 	jr z,ARRANQUE_VELOCIDAD		;6849
 	call SIGUIENTE_SPRITE		;684b
-	call SUMA_10_A_HL		;684e
-	djnz ARRANQUE_POSICION_8		;6851
+	call SUMA_10_A_HL		;684e   ; diez bytes por ficha
+	djnz ARRANQUE_POSICION_8		;6851   ; hasta agotar las seis
 	pop hl			;6853   ; si no hay ninguna, se tira la direccion de vuelta y no nace nadie
 	ret			;6854
 ARRANQUE_VELOCIDAD:
