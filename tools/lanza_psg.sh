@@ -7,5 +7,6 @@ mkdir -p $d
 cd $R
 PY=/c/Users/Antxiko/AppData/Local/Programs/Python/Python313/python.exe
 eval "$($PY tools/musica.py emu)"
-PSG_OUT="$d" PSG_FIN=${2:-120} PSG_SIEMPRE="${3#-}" PSG_POKE="$4" PSG_POKE_NUM="$5" PSG_POKE_F="${6:-1800}" PSG_TECLAS="$7" "/c/Program Files/openMSX/openmsx.exe" -machine $EMU_MAQUINA -cart $EMU_ROM $EMU_TIPO -script tools/omsx_psg.tcl > $d/stdout.txt 2>&1
+case "$3" in u*) S=""; F="${3#u}";; -) S=""; F="";; *) S="$3"; F="";; esac
+PSG_OUT="$d" PSG_FIN=${2:-120} PSG_SIEMPRE="$S" PSG_FUERZA="$F" PSG_POKE="$4" PSG_POKE_NUM="$5" PSG_POKE_F="${6:-1800}" PSG_TECLAS="$7" "/c/Program Files/openMSX/openmsx.exe" -machine $EMU_MAQUINA -cart $EMU_ROM $EMU_TIPO -script tools/omsx_psg.tcl > $d/stdout.txt 2>&1
 echo hecho > $d/fin.txt
