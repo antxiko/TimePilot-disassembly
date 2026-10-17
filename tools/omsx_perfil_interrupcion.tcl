@@ -16,12 +16,12 @@
 #       -machine Philips_VG_8020 -cart timepilot.rom \
 #       -script tools/omsx_perfil_interrupcion.tcl
 
-source "C:/Users/Antxiko/Documents/DES_ASM/TIMEPILOT_DISAM/tools/omsx_comun.tcl"
+source "C:/Users/Antxiko/Documents/DES_ASM/desensamblados/TIMEPILOT_DISAM/tools/omsx_comun.tcl"
 
 set ::MODO    [opcion TP_MODO demo]
 set ::PILOTO  [opcion TP_PILOTO 0]
 set ::VENTANA [expr {double([opcion TP_VENTANA 30])}]
-set ::SALIDA  [opcion TP_SALIDA "C:/Users/Antxiko/Documents/DES_ASM/TIMEPILOT_DISAM/work/omsx/perfil_interrupcion_$::MODO.txt"]
+set ::SALIDA  [opcion TP_SALIDA "C:/Users/Antxiko/Documents/DES_ASM/desensamblados/TIMEPILOT_DISAM/work/omsx/perfil_interrupcion_$::MODO.txt"]
 
 array set ::NOMBRE {
     16439 "4037 entrada"

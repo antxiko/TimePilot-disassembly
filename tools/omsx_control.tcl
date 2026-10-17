@@ -10,7 +10,7 @@
 #
 # Si esto sale a cero, la instrumentacion esta rota; no es un hallazgo.
 
-set ::SALIDA "C:/Users/Antxiko/Documents/DES_ASM/TIMEPILOT_DISAM/work/omsx/control.txt"
+set ::SALIDA "C:/Users/Antxiko/Documents/DES_ASM/desensamblados/TIMEPILOT_DISAM/work/omsx/control.txt"
 set ::TRAMOS 15
 set ::PASO 2.0
 
