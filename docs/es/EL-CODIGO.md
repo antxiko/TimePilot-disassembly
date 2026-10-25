@@ -128,3 +128,23 @@ Cuando nadie toca nada, la partida la juega 0x546B, y ahí está lo más raro de
 cartucho: el mando de la demo no es un guión grabado ni un generador de números,
 sino **el propio código**. Se coge el registro R, se le suma a 0x5399, y el byte
 que haya ahí se mete en 0xE009 como si viniera del joystick.
+
+## Código compartido con otros cartuchos de Konami
+
+Este desensamblado se ha comparado, instrucción por instrucción, con
+todos los demás de Konami de la serie. Cuenta un bloque cuando las
+mismas instrucciones, al menos seis desde una etiqueta hasta su `ret`
+o su salto sin condición, están en los dos cartuchos; las direcciones
+no se miran, porque cambian de un cartucho a otro. De los otros 57,
+**6** tienen al menos un bloque en común con este; estos son los
+que más comparten:
+
+| Cartucho | Bloques | Instrucciones | Por ejemplo (aquí = allí) |
+|---|---:|---:|---|
+| [Frogger](https://antxiko.github.io/Frogger-disassembly/es/) | 16 | 236 | `CANAL_PON_VOLUMEN` (0x41B6) |
+| [Hyper Olympic 1](https://antxiko.github.io/HyperOlympic1-disassembly/es/) | 2 | 14 | `PINTA_LA_PANTALLA_FIJA` (0x4A62) = `PINTA_EL_MARCO_DEL_MENU` |
+| [Hyper Olympic 2](https://antxiko.github.io/HyperOlympic2-disassembly/es/) | 2 | 14 | `PINTA_LA_PANTALLA_FIJA` (0x4A62) = `PINTA_EL_MARCO_DEL_MENU` |
+
+La matriz entera, los 58 cartuchos entre sí, está en
+[Las rutinas](https://antxiko.github.io/MSX-disassembly-database/es/LAS-RUTINAS.html) de la base de datos de la
+serie, con el método y el programa que la mide.

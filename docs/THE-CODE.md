@@ -129,3 +129,23 @@ strangest thing in the cartridge: the attract mode's controller is not a
 recorded script nor a number generator, but **the code itself**. It takes the R
 register, adds it to 0x5399, and whatever byte is there goes into 0xE009 as if
 it came from the joystick.
+
+## Code shared with other Konami cartridges
+
+This disassembly has been compared, instruction by instruction, with
+every other Konami one in the series. A block counts when the same
+instructions, at least six of them from a label to its `ret` or its
+unconditional jump, are in both cartridges; the addresses are left
+aside, because they change from one cartridge to the next. Of the
+other 57, **6** have at least one block in common with this one;
+these are the ones that share the most:
+
+| Cartridge | Blocks | Instructions | For example (here = there) |
+|---|---:|---:|---|
+| [Frogger](https://antxiko.github.io/Frogger-disassembly/) | 16 | 236 | `CANAL_PON_VOLUMEN` (0x41B6) |
+| [Hyper Olympic 1](https://antxiko.github.io/HyperOlympic1-disassembly/) | 2 | 14 | `PINTA_LA_PANTALLA_FIJA` (0x4A62) = `PINTA_EL_MARCO_DEL_MENU` |
+| [Hyper Olympic 2](https://antxiko.github.io/HyperOlympic2-disassembly/) | 2 | 14 | `PINTA_LA_PANTALLA_FIJA` (0x4A62) = `PINTA_EL_MARCO_DEL_MENU` |
+
+The whole matrix, the 58 cartridges against each other, is on
+[The routines](https://antxiko.github.io/MSX-disassembly-database/THE-ROUTINES.html) in the series database, along
+with the method and the program that measures it.

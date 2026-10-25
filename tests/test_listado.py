@@ -21,6 +21,18 @@ OTROS_JUEGOS = ("Pitfall", "Temptations", "Stardust", "Ale Hop", "Colt 36",
 
 ORG, FIN = 0x4000, 0x8000
 
+# La seccion del codigo compartido con los otros Konami de la serie los
+# nombra a proposito: la escribe pon_en_webs.py, de MSX-disassembly-database.
+_COMPARTIDO = re.compile(
+    r"(?:^## |<h2[^>]*>)(?:Code shared with other Konami cartridges|"
+    r"C\u00f3digo compartido con otros cartuchos de Konami)"
+    r".*?(?=^## |<h2|</main>|<footer|\Z)", re.S | re.M)
+
+
+def sin_compartido(texto):
+    """El texto sin la seccion del codigo compartido."""
+    return _COMPARTIDO.sub("", texto)
+
 
 def asm():
     with open(ASM, encoding="utf-8") as f:
@@ -210,7 +222,7 @@ class TestWeb(unittest.TestCase):
                 if not fn.endswith(".md"):
                     continue
                 with open(os.path.join(raiz, fn), encoding="utf-8") as f:
-                    texto = f.read()
+                    texto = sin_compartido(f.read())
                 for juego in OTROS_JUEGOS:
                     self.assertNotIn(juego, texto,
                                      "%s nombra %s" % (fn, juego))
